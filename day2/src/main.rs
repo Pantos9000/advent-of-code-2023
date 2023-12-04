@@ -1,5 +1,6 @@
 #[derive(Default)]
 struct Game {
+    #[allow(dead_code)]
     id: u32,
     rounds: Vec<Round>,
 }
@@ -24,6 +25,7 @@ impl Game {
         }
     }
 
+    #[allow(dead_code)] // was used in part 1
     fn is_possible_with(&self, max_colors: Colors) -> bool {
         for round in &self.rounds {
             if !round.is_possible_with(max_colors) {
@@ -32,9 +34,17 @@ impl Game {
         }
         true
     }
+
+    fn color_power(&self) -> u32 {
+        let mut max_colors = Colors::default();
+        for round in &self.rounds {
+            max_colors.increase_max(round.colors());
+        }
+        max_colors.power()
+    }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 struct Colors {
     red: u32,
     green: u32,
@@ -48,6 +58,17 @@ impl Colors {
 
     fn is_possible_with(&self, max_colors: Self) -> bool {
         self.red <= max_colors.red && self.green <= max_colors.green && self.blue <= max_colors.blue
+    }
+
+    fn increase_max(&mut self, other: Self) {
+        use std::cmp;
+        self.red = cmp::max(self.red, other.red);
+        self.green = cmp::max(self.green, other.green);
+        self.blue = cmp::max(self.blue, other.blue);
+    }
+
+    fn power(&self) -> u32 {
+        self.red * self.green * self.blue
     }
 }
 
@@ -78,6 +99,10 @@ impl Round {
     fn is_possible_with(&self, max_colors: Colors) -> bool {
         self.colors.is_possible_with(max_colors)
     }
+
+    fn colors(&self) -> Colors {
+        self.colors
+    }
 }
 
 fn read_input() -> String {
@@ -88,18 +113,11 @@ fn read_input() -> String {
 }
 
 fn main() {
-    let max_colors = Colors::new(12, 13, 14);
     let input = read_input();
     let result: u32 = input
         .lines()
         .map(Game::parse)
-        .filter_map(|game| {
-            if !game.is_possible_with(max_colors) {
-                None
-            } else {
-                Some(game.id)
-            }
-        })
+        .map(|game| game.color_power())
         .sum();
     println!("Result: {result}");
 }
