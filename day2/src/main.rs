@@ -24,9 +24,9 @@ impl Game {
         }
     }
 
-    fn is_possible_with(&self, max_red: u32, max_green: u32, max_blue: u32) -> bool {
+    fn is_possible_with(&self, max_colors: Colors) -> bool {
         for round in &self.rounds {
-            if !round.is_possible_with(max_red, max_green, max_blue) {
+            if !round.is_possible_with(max_colors) {
                 return false;
             }
         }
@@ -34,10 +34,25 @@ impl Game {
     }
 }
 
-struct Round {
+#[derive(Debug, Clone, Copy)]
+struct Colors {
     red: u32,
     green: u32,
     blue: u32,
+}
+
+impl Colors {
+    fn new(red: u32, green: u32, blue: u32) -> Self {
+        Self { red, green, blue }
+    }
+
+    fn is_possible_with(&self, max_colors: Self) -> bool {
+        self.red <= max_colors.red && self.green <= max_colors.green && self.blue <= max_colors.blue
+    }
+}
+
+struct Round {
+    colors: Colors,
 }
 
 impl Round {
@@ -56,11 +71,12 @@ impl Round {
                 _ => unreachable!(),
             }
         });
-        Self { red, green, blue }
+        let colors = Colors::new(red, green, blue);
+        Self { colors }
     }
 
-    fn is_possible_with(&self, max_red: u32, max_green: u32, max_blue: u32) -> bool {
-        self.red <= max_red && self.green <= max_green && self.blue <= max_blue
+    fn is_possible_with(&self, max_colors: Colors) -> bool {
+        self.colors.is_possible_with(max_colors)
     }
 }
 
@@ -72,12 +88,13 @@ fn read_input() -> String {
 }
 
 fn main() {
+    let max_colors = Colors::new(12, 13, 14);
     let input = read_input();
     let result: u32 = input
         .lines()
         .map(Game::parse)
         .filter_map(|game| {
-            if !game.is_possible_with(12, 13, 14) {
+            if !game.is_possible_with(max_colors) {
                 None
             } else {
                 Some(game.id)
@@ -97,14 +114,14 @@ mod tests {
         let Game { id, rounds } = Game::parse(line);
         assert_eq!(id, 1);
         assert_eq!(rounds.len(), 3);
-        assert_eq!(rounds[0].red, 4);
-        assert_eq!(rounds[0].green, 0);
-        assert_eq!(rounds[0].blue, 3);
-        assert_eq!(rounds[1].red, 1);
-        assert_eq!(rounds[1].green, 2);
-        assert_eq!(rounds[1].blue, 6);
-        assert_eq!(rounds[2].red, 0);
-        assert_eq!(rounds[2].green, 2);
-        assert_eq!(rounds[2].blue, 0);
+        assert_eq!(rounds[0].colors.red, 4);
+        assert_eq!(rounds[0].colors.green, 0);
+        assert_eq!(rounds[0].colors.blue, 3);
+        assert_eq!(rounds[1].colors.red, 1);
+        assert_eq!(rounds[1].colors.green, 2);
+        assert_eq!(rounds[1].colors.blue, 6);
+        assert_eq!(rounds[2].colors.red, 0);
+        assert_eq!(rounds[2].colors.green, 2);
+        assert_eq!(rounds[2].colors.blue, 0);
     }
 }
