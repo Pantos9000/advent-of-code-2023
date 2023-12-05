@@ -1,6 +1,5 @@
 #[derive(Default)]
 struct Game {
-    #[allow(dead_code)]
     id: u32,
     rounds: Vec<Round>,
 }
@@ -25,7 +24,6 @@ impl Game {
         }
     }
 
-    #[allow(dead_code)] // was used in part 1
     fn is_possible_with(&self, max_colors: Colors) -> bool {
         for round in &self.rounds {
             if !round.is_possible_with(max_colors) {
@@ -112,14 +110,35 @@ fn read_input() -> String {
     fs::read_to_string(input_path).unwrap()
 }
 
-fn main() {
-    let input = read_input();
-    let result: u32 = input
+fn part1(input: &str) -> u32 {
+    let max_colors = Colors::new(12, 13, 14);
+    input
+        .lines()
+        .map(Game::parse)
+        .filter_map(|game| {
+            if !game.is_possible_with(max_colors) {
+                None
+            } else {
+                Some(game.id)
+            }
+        })
+        .sum()
+}
+
+fn part2(input: &str) -> u32 {
+    input
         .lines()
         .map(Game::parse)
         .map(|game| game.color_power())
-        .sum();
-    println!("Result: {result}");
+        .sum()
+}
+
+fn main() {
+    let input = read_input();
+    let result1 = part1(&input);
+    let result2 = part2(&input);
+    println!("Result1: {result1}");
+    println!("Result2: {result2}");
 }
 
 #[cfg(test)]
