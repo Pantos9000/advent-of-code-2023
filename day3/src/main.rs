@@ -115,7 +115,7 @@ impl NumCollector {
     }
 }
 
-fn calc_sum(input: &str) -> u32 {
+fn part1(input: &str) -> u32 {
     let schematic = Schematic::parse(input);
     let mut collector = NumCollector::default();
 
@@ -143,8 +143,8 @@ fn calc_sum(input: &str) -> u32 {
 
 fn main() {
     let input = read_input();
-    let sum = calc_sum(&input);
-    println!("solution is {sum}");
+    let result1 = part1(&input);
+    println!("Result1 is {result1}");
 }
 
 #[cfg(test)]
@@ -152,13 +152,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_solution() {
+    fn test_part1_solution() {
+        let input = read_input();
+        let result = part1(&input);
+        assert_eq!(result, 539590);
+    }
+
+    #[test]
+    fn test_small_solution() {
         let input = "\
         .11..42+\n\
         1..*....\n\
         ......$2\n\
         12345...";
-        let sum = calc_sum(input);
+        let sum = part1(input);
         assert_eq!(sum, 55);
     }
 
