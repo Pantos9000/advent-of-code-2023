@@ -10,7 +10,8 @@ pub fn read_input() -> String {
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub enum Entry {
     Number(u32),
-    Symbol,
+    Gear,
+    OtherSymbol,
     #[default]
     Empty,
 }
@@ -23,7 +24,17 @@ impl Entry {
         match c {
             '.' => Self::Empty,
             '\n' => Self::Empty,
-            _ => Entry::Symbol,
+            '*' => Self::Gear,
+            _ => Entry::OtherSymbol,
+        }
+    }
+
+    pub fn is_symbol(&self) -> bool {
+        match self {
+            Entry::Number(_) => false,
+            Entry::Gear => true,
+            Entry::OtherSymbol => true,
+            Entry::Empty => false,
         }
     }
 }
@@ -126,7 +137,7 @@ fn part1(input: &str) -> u32 {
                 collector.shift_into_buffer(num);
 
                 for neighbor in schematic.entry_neighbors(x, y) {
-                    if neighbor == Entry::Symbol {
+                    if neighbor.is_symbol() {
                         collector.set_buffer_valid();
                     }
                 }
@@ -171,14 +182,14 @@ mod tests {
 
     #[test]
     fn test_schematic_parse() {
-        let input = ".*.\n23.";
+        let input = ".*.\n2+.";
         let schematic = Schematic::parse(input);
         assert_eq!(schematic.dimensions(), (3, 2));
         assert_eq!(schematic.entry(0, 0), Entry::Empty);
-        assert_eq!(schematic.entry(1, 0), Entry::Symbol);
+        assert_eq!(schematic.entry(1, 0), Entry::Gear);
         assert_eq!(schematic.entry(2, 0), Entry::Empty);
         assert_eq!(schematic.entry(0, 1), Entry::Number(2));
-        assert_eq!(schematic.entry(1, 1), Entry::Number(3));
+        assert_eq!(schematic.entry(1, 1), Entry::OtherSymbol);
         assert_eq!(schematic.entry(2, 1), Entry::Empty);
     }
 
@@ -191,11 +202,11 @@ mod tests {
             assert!(matches!(neighbor, Entry::Empty));
         }
 
-        let all_symbols = "*+#\n!§$\n%&/";
+        let all_symbols = "=+#\n!§$\n%&/";
         let schematic = Schematic::parse(all_symbols);
         let neighbors = schematic.entry_neighbors(1, 1);
         for neighbor in neighbors {
-            assert!(matches!(neighbor, Entry::Symbol));
+            assert!(matches!(neighbor, Entry::OtherSymbol));
         }
     }
 
