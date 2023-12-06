@@ -37,6 +37,10 @@ impl Entry {
             Entry::Empty => false,
         }
     }
+
+    pub fn is_number(&self) -> bool {
+        matches!(self, Entry::Number(_))
+    }
 }
 
 #[derive(Debug, Default)]
@@ -78,6 +82,37 @@ impl EntryNeighborhood {
             return true;
         }
         false
+    }
+
+    fn count_numbers_in_line(left: Entry, middle: Entry, right: Entry) -> u32 {
+        if middle.is_number() {
+            // can max be one number
+            return 1;
+        }
+
+        let mut count = 0;
+        if left.is_number() {
+            count += 1;
+        }
+        if right.is_number() {
+            count += 1;
+        }
+        count
+    }
+
+    pub fn count_numbers(&self) -> u32 {
+        let mut count = 0;
+
+        count += Self::count_numbers_in_line(self.upper_left, self.upper_middle, self.upper_right);
+        if self.middle_left.is_number() {
+            count += 1;
+        }
+        if self.middle_right.is_number() {
+            count += 1;
+        }
+        count += Self::count_numbers_in_line(self.lower_left, self.lower_middle, self.lower_right);
+
+        count
     }
 }
 
@@ -199,6 +234,17 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_neighborhood_nums() {
+        let mut hood = EntryNeighborhood::default();
+        hood.upper_middle = Entry::Number(2);
+        hood.upper_right = Entry::Number(3);
+        hood.lower_left = Entry::Number(4);
+        hood.middle_left = Entry::Number(5);
+        hood.middle_right = Entry::Number(6);
+        assert_eq!(hood.count_numbers(), 4);
+    }
 
     #[test]
     fn test_part1_solution() {
