@@ -39,7 +39,47 @@ impl Entry {
     }
 }
 
-type EntryNeighborhood = [Entry; 8];
+#[derive(Debug, Default)]
+pub struct EntryNeighborhood {
+    upper_left: Entry,
+    upper_middle: Entry,
+    upper_right: Entry,
+    middle_left: Entry,
+    middle_right: Entry,
+    lower_left: Entry,
+    lower_middle: Entry,
+    lower_right: Entry,
+}
+
+impl EntryNeighborhood {
+    pub fn contains_symbols(&self) -> bool {
+        if self.upper_left.is_symbol() {
+            return true;
+        }
+        if self.upper_middle.is_symbol() {
+            return true;
+        }
+        if self.upper_right.is_symbol() {
+            return true;
+        }
+        if self.middle_left.is_symbol() {
+            return true;
+        }
+        if self.middle_right.is_symbol() {
+            return true;
+        }
+        if self.lower_left.is_symbol() {
+            return true;
+        }
+        if self.lower_middle.is_symbol() {
+            return true;
+        }
+        if self.lower_right.is_symbol() {
+            return true;
+        }
+        false
+    }
+}
 
 pub struct Schematic {
     entries: Vec<Vec<Entry>>,
@@ -78,16 +118,16 @@ impl Schematic {
     }
 
     pub fn entry_neighbors(&self, x: usize, y: usize) -> EntryNeighborhood {
-        [
-            self.entries[y + 0][x + 0],
-            self.entries[y + 0][x + 1],
-            self.entries[y + 0][x + 2],
-            self.entries[y + 1][x + 0],
-            self.entries[y + 1][x + 2],
-            self.entries[y + 2][x + 0],
-            self.entries[y + 2][x + 1],
-            self.entries[y + 2][x + 2],
-        ]
+        EntryNeighborhood {
+            upper_left: self.entries[y + 0][x + 0],
+            upper_middle: self.entries[y + 0][x + 1],
+            upper_right: self.entries[y + 0][x + 2],
+            middle_left: self.entries[y + 1][x + 0],
+            middle_right: self.entries[y + 1][x + 2],
+            lower_left: self.entries[y + 2][x + 0],
+            lower_middle: self.entries[y + 2][x + 1],
+            lower_right: self.entries[y + 2][x + 2],
+        }
     }
 }
 
@@ -136,10 +176,8 @@ fn part1(input: &str) -> u32 {
             if let Entry::Number(num) = schematic.entry(x, y) {
                 collector.shift_into_buffer(num);
 
-                for neighbor in schematic.entry_neighbors(x, y) {
-                    if neighbor.is_symbol() {
-                        collector.set_buffer_valid();
-                    }
+                if schematic.entry_neighbors(x, y).contains_symbols() {
+                    collector.set_buffer_valid();
                 }
             } else {
                 collector.flush_buffer();
@@ -198,16 +236,12 @@ mod tests {
         let all_empty = "..\n..";
         let schematic = Schematic::parse(all_empty);
         let neighbors = schematic.entry_neighbors(1, 1);
-        for neighbor in neighbors {
-            assert!(matches!(neighbor, Entry::Empty));
-        }
+        assert!(!neighbors.contains_symbols());
 
         let all_symbols = "=+#\n!§$\n%&/";
         let schematic = Schematic::parse(all_symbols);
         let neighbors = schematic.entry_neighbors(1, 1);
-        for neighbor in neighbors {
-            assert!(matches!(neighbor, Entry::OtherSymbol));
-        }
+        assert!(neighbors.contains_symbols());
     }
 
     #[test]
