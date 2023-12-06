@@ -41,6 +41,10 @@ impl Entry {
     pub fn is_number(&self) -> bool {
         matches!(self, Entry::Number(_))
     }
+
+    pub fn is_gear(&self) -> bool {
+        matches!(self, Entry::Gear)
+    }
 }
 
 #[derive(Debug, Default)]
@@ -164,6 +168,40 @@ impl Schematic {
             lower_right: self.entries[y + 2][x + 2],
         }
     }
+
+    pub fn neighboring_gears(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
+        let (len_x, len_y) = self.dimensions();
+        let (max_x, max_y) = (len_x - 1, len_y - 1);
+        let hood = self.entry_neighbors(x, y);
+        let mut gears = Vec::new();
+
+        if x > 0 && y > 0 && hood.upper_left.is_gear() {
+            gears.push((x - 1, y - 1));
+        }
+        if y > 0 && hood.upper_middle.is_gear() {
+            gears.push((x, y - 1));
+        }
+        if x < max_x && y > 0 && hood.upper_right.is_gear() {
+            gears.push((x + 1, y - 1));
+        }
+        if x > 0 && hood.middle_left.is_gear() {
+            gears.push((x - 1, y));
+        }
+        if x < max_x && hood.middle_right.is_gear() {
+            gears.push((x + 1, y));
+        }
+        if x > 0 && y < max_y && hood.lower_left.is_gear() {
+            gears.push((x - 1, y + 1));
+        }
+        if y < max_y && hood.lower_middle.is_gear() {
+            gears.push((x, y + 1));
+        }
+        if x < max_x && y < max_y && hood.lower_right.is_gear() {
+            gears.push((x + 1, y + 1));
+        }
+
+        gears
+    }
 }
 
 #[derive(Debug, Default)]
@@ -262,6 +300,27 @@ mod tests {
         12345...";
         let sum = part1(input);
         assert_eq!(sum, 55);
+    }
+
+    #[test]
+    fn test_schematic_neighborhood_gears() {
+        let input = "\
+            ..*\n\
+            *..\n\
+            .**";
+        let schematic = Schematic::parse(input);
+        let mut gears = schematic.neighboring_gears(1, 1);
+        assert_eq!(gears.pop().unwrap(), (2, 2));
+        assert_eq!(gears.pop().unwrap(), (1, 2));
+        assert_eq!(gears.pop().unwrap(), (0, 1));
+        assert_eq!(gears.pop().unwrap(), (2, 0));
+        assert!(gears.pop().is_none());
+
+        let input = "**";
+        let schematic = Schematic::parse(input);
+        let mut gears = schematic.neighboring_gears(0, 0);
+        assert_eq!(gears.pop().unwrap(), (1, 0));
+        assert!(gears.pop().is_none());
     }
 
     #[test]
