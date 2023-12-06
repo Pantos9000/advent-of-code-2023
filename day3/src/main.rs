@@ -119,12 +119,12 @@ impl Schematic {
 
     pub fn entry_neighbors(&self, x: usize, y: usize) -> EntryNeighborhood {
         EntryNeighborhood {
-            upper_left: self.entries[y + 0][x + 0],
-            upper_middle: self.entries[y + 0][x + 1],
-            upper_right: self.entries[y + 0][x + 2],
-            middle_left: self.entries[y + 1][x + 0],
+            upper_left: self.entries[y][x],
+            upper_middle: self.entries[y][x + 1],
+            upper_right: self.entries[y][x + 2],
+            middle_left: self.entries[y + 1][x],
             middle_right: self.entries[y + 1][x + 2],
-            lower_left: self.entries[y + 2][x + 0],
+            lower_left: self.entries[y + 2][x],
             lower_middle: self.entries[y + 2][x + 1],
             lower_right: self.entries[y + 2][x + 2],
         }
