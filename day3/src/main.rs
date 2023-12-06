@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use std::iter;
 
 pub fn read_input() -> String {
@@ -263,15 +264,115 @@ fn part1(input: &str) -> u32 {
     collector.sum()
 }
 
+#[derive(Default)]
+pub struct GearCollector {
+    gear_values: HashMap<(usize, usize), u32>,
+    buffer: Option<u32>,
+    corresponding_gears: HashSet<(usize, usize)>,
+}
+
+impl GearCollector {
+    pub fn shift_into_buffer(&mut self, num: u32) {
+        self.buffer = match self.buffer {
+            None => Some(num),
+            Some(buffer) => Some(buffer * 10 + num),
+        }
+    }
+
+    pub fn flush_buffer(&mut self) {
+        if let Some(buffer) = self.buffer {
+            for gear in &self.corresponding_gears {
+                self.gear_values
+                    .entry(*gear)
+                    .and_modify(|val| *val *= buffer)
+                    .or_insert(buffer);
+            }
+        }
+
+        self.buffer = None;
+        self.corresponding_gears.clear();
+    }
+
+    pub fn add_corresponding_gear(&mut self, gear: (usize, usize)) {
+        self.corresponding_gears.insert(gear);
+    }
+
+    pub fn sum(&self) -> u32 {
+        self.gear_values.values().sum()
+    }
+}
+
+fn part2(input: &str) -> u32 {
+    let schematic = Schematic::parse(input);
+    let mut collector = GearCollector::default();
+
+    let (len_x, len_y) = schematic.dimensions();
+    for y in 0..len_y {
+        for x in 0..len_x {
+            if let Entry::Number(num) = schematic.entry(x, y) {
+                collector.shift_into_buffer(num);
+
+                let gears = schematic.neighboring_gears(x, y);
+                for (gear_x, gear_y) in gears {
+                    if schematic.entry_neighbors(gear_x, gear_y).count_numbers() == 2 {
+                        collector.add_corresponding_gear((gear_x, gear_y));
+                    }
+                }
+            } else {
+                collector.flush_buffer();
+            }
+        }
+        // at the end of a line, also flush buffer
+        collector.flush_buffer();
+    }
+
+    collector.sum()
+}
+
 fn main() {
     let input = read_input();
     let result1 = part1(&input);
+    let result2 = part2(&input);
     println!("Result1 is {result1}");
+    println!("Result2 is {result2}");
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_gear_collector() {
+        let mut collector = GearCollector::default();
+
+        let gear1 = (3, 4);
+        let gear2 = (5, 6);
+
+        assert_eq!(collector.sum(), 0);
+        collector.flush_buffer();
+        assert_eq!(collector.sum(), 0);
+        collector.shift_into_buffer(8);
+        collector.shift_into_buffer(9);
+        assert_eq!(collector.sum(), 0);
+        collector.flush_buffer();
+        assert_eq!(collector.sum(), 0);
+
+        collector.shift_into_buffer(1);
+        collector.add_corresponding_gear(gear1);
+        collector.shift_into_buffer(1);
+        collector.flush_buffer();
+        assert_eq!(collector.sum(), 11);
+
+        collector.add_corresponding_gear(gear2);
+        collector.shift_into_buffer(5);
+        collector.flush_buffer();
+        assert_eq!(collector.sum(), 16);
+
+        collector.shift_into_buffer(2);
+        collector.add_corresponding_gear(gear1);
+        collector.flush_buffer();
+        assert_eq!(collector.sum(), 27);
+    }
 
     #[test]
     fn test_neighborhood_nums() {
