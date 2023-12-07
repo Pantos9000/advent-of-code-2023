@@ -6,16 +6,19 @@ pub fn read_input() -> String {
 }
 
 struct Card {
+    id: u32,
     winning_numbers: Vec<u32>,
     chosen_numbers: Vec<u32>,
 }
 
 impl Card {
     fn parse(line: &str) -> Self {
-        let (winning_numbers, chosen_numbers) =
-            line.split(':').nth(1).unwrap().split_once('|').unwrap();
+        let (prefix, numbers) = line.split_once(':').unwrap();
+        let id = prefix.split(' ').nth(1).unwrap().parse().unwrap();
+        let (winning_numbers, chosen_numbers) = numbers.split_once('|').unwrap();
 
         Self {
+            id,
             winning_numbers: Self::parse_num_array(winning_numbers),
             chosen_numbers: Self::parse_num_array(chosen_numbers),
         }
@@ -62,9 +65,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let card = Card::parse("bla: 1 2 3 4 | 2 3");
+        let card = Card::parse("Card 1: 1 2 3 4 | 2 3");
         assert_eq!(card.points(), 2);
-        let card = Card::parse("bla: 1 2 3 4 | 1 2 3 4 5");
+        assert_eq!(card.id, 1);
+        let card = Card::parse("Card 2: 1 2 3 4 | 1 2 3 4 5");
         assert_eq!(card.points(), 8);
+        assert_eq!(card.id, 2);
     }
 }
