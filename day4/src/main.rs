@@ -7,8 +7,20 @@ pub fn read_input() -> String {
 
 struct Card {
     id: u32,
+    is_copy: bool,
     winning_numbers: Vec<u32>,
     chosen_numbers: Vec<u32>,
+}
+
+impl Clone for Card {
+    fn clone(&self) -> Self {
+        Card {
+            id: self.id,
+            is_copy: true,
+            winning_numbers: self.winning_numbers.clone(),
+            chosen_numbers: self.chosen_numbers.clone(),
+        }
+    }
 }
 
 impl Card {
@@ -19,6 +31,7 @@ impl Card {
 
         Self {
             id,
+            is_copy: false,
             winning_numbers: Self::parse_num_array(winning_numbers),
             chosen_numbers: Self::parse_num_array(chosen_numbers),
         }
