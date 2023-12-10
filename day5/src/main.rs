@@ -117,6 +117,36 @@ fn parse_seeds_part1(input: &str) -> Vec<items::Seed> {
         .collect()
 }
 
+struct SeedIterator {
+    iter: Box<dyn Iterator<Item = usize>>,
+}
+
+impl SeedIterator {
+    fn parse(input: &str) -> Self {
+        let (_, seeds) = input.lines().next().unwrap().split_once(':').unwrap();
+        let seeds_iter = seeds
+            .trim()
+            .split(' ')
+            .map(|seed_str| seed_str.parse().unwrap());
+        let seed_starts = seeds_iter.clone().step_by(2);
+        let seed_ends = seeds_iter.skip(1).step_by(2);
+        let ranges: Vec<_> = seed_starts
+            .zip(seed_ends)
+            .map(|(start, len)| start..(start + len))
+            .collect();
+        let iter = Box::new(ranges.into_iter().flatten());
+        Self { iter }
+    }
+}
+
+impl Iterator for SeedIterator {
+    type Item = items::Seed;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(items::Seed::from_int)
+    }
+}
+
 fn part1(input: &str) -> usize {
     let seed_to_soil: UncannyMap<items::Seed, items::Soil> = UncannyMap::parse(input);
     let soil_to_fert: UncannyMap<items::Soil, items::Fertilizer> = UncannyMap::parse(input);
@@ -144,9 +174,28 @@ fn part1(input: &str) -> usize {
         .unwrap()
 }
 
-fn part2(_input: &str) -> u32 {
-    // TODO
-    0
+fn part2(input: &str) -> usize {
+    let seed_to_soil: UncannyMap<items::Seed, items::Soil> = UncannyMap::parse(input);
+    let soil_to_fert: UncannyMap<items::Soil, items::Fertilizer> = UncannyMap::parse(input);
+    let fert_to_water: UncannyMap<items::Fertilizer, items::Water> = UncannyMap::parse(input);
+    let water_to_light: UncannyMap<items::Water, items::Light> = UncannyMap::parse(input);
+    let light_to_temp: UncannyMap<items::Light, items::Temperature> = UncannyMap::parse(input);
+    let temp_to_humidity: UncannyMap<items::Temperature, items::Humidity> =
+        UncannyMap::parse(input);
+    let humidity_to_location: UncannyMap<items::Humidity, items::Location> =
+        UncannyMap::parse(input);
+
+    SeedIterator::parse(input)
+        .map(|seed| seed_to_soil.get(seed))
+        .map(|soil| soil_to_fert.get(soil))
+        .map(|fert| fert_to_water.get(fert))
+        .map(|water| water_to_light.get(water))
+        .map(|light| light_to_temp.get(light))
+        .map(|temp| temp_to_humidity.get(temp))
+        .map(|humidity| humidity_to_location.get(humidity))
+        .map(|location| location.value())
+        .min()
+        .unwrap()
 }
 
 fn main() {
@@ -160,6 +209,18 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_seed_iterator() {
+        let input = "seeds: 2 2 7 3\n";
+        let mut iter = SeedIterator::parse(input);
+        assert_eq!(iter.next().unwrap().value(), 2);
+        assert_eq!(iter.next().unwrap().value(), 3);
+        assert_eq!(iter.next().unwrap().value(), 7);
+        assert_eq!(iter.next().unwrap().value(), 8);
+        assert_eq!(iter.next().unwrap().value(), 9);
+        assert!(iter.next().is_none());
+    }
 
     #[test]
     fn test_parse_seeds() {
