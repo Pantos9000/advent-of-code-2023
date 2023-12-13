@@ -59,8 +59,26 @@ fn part1(input: &str) -> usize {
         .product()
 }
 
-fn part2(_input: &str) -> usize {
-    0 // TODO
+fn parse_badly_kerned_race(input: &str) -> Race {
+    let (time_input, record_input) = input.split_once('\n').unwrap();
+
+    let (_, time_input) = time_input.split_once(':').unwrap();
+    let mut time = String::new();
+    time_input.trim().split(' ').for_each(|s| time.push_str(s));
+    let time = time.parse().unwrap();
+
+    let (_, record_input) = record_input.split_once(':').unwrap();
+    let mut record = String::new();
+    record_input
+        .trim()
+        .split(' ')
+        .for_each(|s| record.push_str(s));
+    let record = record.parse().unwrap();
+
+    Race::new(time, record)
+}
+fn part2(input: &str) -> usize {
+    parse_badly_kerned_race(input).calc_num_win_options()
 }
 
 fn main() {
