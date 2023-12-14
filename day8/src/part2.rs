@@ -1,58 +1,59 @@
-use crate::part1::{Direction, Guide, NodeArena, NodeId};
+use crate::part1::{Guide, NodeArena, NodeId};
 
 pub fn run(input: &str) -> usize {
     let nodes = NodeArena::parse(input);
     let mut guide = Guide::parse(input);
-    let mut path = Path::parse(input);
 
-    let mut arrived = false;
-    while !arrived {
-        let direction = guide.where_to();
-        arrived = path.are_we_there_yet(&nodes, direction);
-    }
-    path.num_steps()
+    nodes
+        .inner()
+        .keys()
+        .filter(|node_id| node_id.is_start())
+        .map(|node_id| walk_until_the_end(&nodes, &mut guide, *node_id))
+        .fold(1, lcm)
 }
 
-struct Path<'a> {
-    node_ids: Vec<NodeId<'a>>,
-    num_steps: usize,
+fn lcm(x: usize, y: usize) -> usize {
+    let mut buf1 = usize::max(x, y);
+    let mut buf2 = usize::min(x, y);
+
+    if buf2 == 0 {
+        return buf1;
+    }
+
+    let mut remainder = buf1 % buf2;
+    while remainder != 0 {
+        buf1 = buf2;
+        buf2 = remainder;
+        remainder = buf1 % buf2;
+    }
+
+    x * y / buf2
 }
-impl<'a> Path<'a> {
-    fn parse(input: &'a str) -> Self {
-        let node_ids = input
-            .lines()
-            .filter_map(|line| line.split(" = ").next())
-            .map(NodeId::from)
-            .filter(|node| node.is_start())
-            .collect();
-        Self {
-            node_ids,
-            num_steps: 0,
-        }
-    }
 
-    /// return true if all nodes are done
-    fn are_we_there_yet(&mut self, nodes: &'a NodeArena, direction: Direction) -> bool {
-        self.num_steps += 1;
-        let mut we_are_there = true;
-        for node_id in &mut self.node_ids {
-            let new_node = nodes.get(*node_id);
-            *node_id = new_node.walk_further(direction);
-            if !node_id.is_end() {
-                we_are_there = false;
-            }
-        }
-        we_are_there
-    }
+fn walk_until_the_end(nodes: &NodeArena, guide: &mut Guide, start_node_id: NodeId) -> usize {
+    let mut current_node_id = start_node_id;
+    let mut num_walks = 0;
 
-    fn num_steps(&self) -> usize {
-        self.num_steps
+    while !current_node_id.is_end() {
+        let node = nodes.get(current_node_id);
+        current_node_id = node.walk_further(guide.where_to());
+        num_walks += 1;
     }
+    num_walks
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_lcm() {
+        assert_eq!(lcm(0, 0), 0);
+        assert_eq!(lcm(1, 0), 1);
+        assert_eq!(lcm(1, 1), 1);
+        assert_eq!(lcm(2, 4), 4);
+        assert_eq!(lcm(6, 9), 18);
+    }
 
     #[test]
     fn test_example() {
