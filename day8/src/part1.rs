@@ -91,6 +91,10 @@ impl<'a> NodeArena<'a> {
     pub fn get(&self, node_id: NodeId<'a>) -> &Node {
         self.nodes.get(&node_id).unwrap()
     }
+
+    pub fn inner(&self) -> &HashMap<NodeId<'a>, Node<'a>> {
+        &self.nodes
+    }
 }
 
 pub struct Node<'a> {
