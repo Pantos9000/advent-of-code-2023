@@ -17,12 +17,12 @@ pub fn run(input: &str) -> usize {
     num_walks
 }
 
-struct Guide<'a> {
+pub struct Guide<'a> {
     data: &'a str,
     iter: std::str::Chars<'a>,
 }
 impl<'a> Guide<'a> {
-    fn parse(input: &'a str) -> Self {
+    pub fn parse(input: &'a str) -> Self {
         let data = input.lines().next().unwrap();
         let iter = data.chars();
         Self { data, iter }
@@ -33,13 +33,13 @@ impl<'a> Guide<'a> {
             return self.iter.next().unwrap();
         })
     }
-    fn where_to(&mut self) -> Direction {
+    pub fn where_to(&mut self) -> Direction {
         self.get_next_char().into()
     }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-enum Direction {
+pub enum Direction {
     Left,
     Right,
 }
@@ -54,18 +54,26 @@ impl From<char> for Direction {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct NodeId<'a>(&'a str);
+pub struct NodeId<'a>(&'a str);
 impl<'a> From<&'a str> for NodeId<'a> {
     fn from(value: &'a str) -> Self {
         Self(value)
     }
 }
+impl<'a> NodeId<'a> {
+    pub fn is_start(&self) -> bool {
+        self.0.ends_with("A")
+    }
+    pub fn is_end(&self) -> bool {
+        self.0.ends_with("Z")
+    }
+}
 
-struct NodeArena<'a> {
+pub struct NodeArena<'a> {
     nodes: HashMap<NodeId<'a>, Node<'a>>,
 }
 impl<'a> NodeArena<'a> {
-    fn parse(input: &'a str) -> Self {
+    pub fn parse(input: &'a str) -> Self {
         let mut nodes = HashMap::new();
         'line_loop: for line in input.lines() {
             let Some((node_id, node_content)) = line.split_once(" = ") else {
@@ -80,12 +88,12 @@ impl<'a> NodeArena<'a> {
         Self { nodes }
     }
 
-    fn get(&self, node_id: NodeId<'a>) -> &Node {
+    pub fn get(&self, node_id: NodeId<'a>) -> &Node {
         self.nodes.get(&node_id).unwrap()
     }
 }
 
-struct Node<'a> {
+pub struct Node<'a> {
     left: NodeId<'a>,
     right: NodeId<'a>,
 }
@@ -102,7 +110,7 @@ impl<'a> Node<'a> {
             right: right.into(),
         }
     }
-    fn walk_further(&self, direction: Direction) -> NodeId<'a> {
+    pub fn walk_further(&self, direction: Direction) -> NodeId<'a> {
         match direction {
             Direction::Left => self.left,
             Direction::Right => self.right,
