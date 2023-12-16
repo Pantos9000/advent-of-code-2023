@@ -32,62 +32,58 @@ pub fn run(input: &str) -> isize {
 /// * Furthermore, the first element is not even needed to calculate all needed diffs
 /// * We reverse the history, so we effectively iterate it from the back, ignoring
 ///   unneeded entries at the back
-/// * We want to calculate all entries on the right diagonale.
+/// * Thus we want to calculate all entries on the right diagonale.
 /// * Values we already used can be overwritten, so entries can be reused for calculated diffs
 ///
 /// ## Steps
-/// Note: History content depicted in reverse order for better overview,
-/// i.e. last element has Position `0`.
+/// **Notes**
+/// * History content depicted in reverse order for better overview,
+///   i.e. last element has Position `0`.
+/// * Entries marked with `x` are not taken into account anymore for the rest of the algorithm.
 ///
 /// **Step 0**
 /// * First add `45` to the `accumulator`: `accumulator == 45`
-/// * Then calculate the `line 1` diff: `45 - 30 = 15`
-/// * Store it at position `0`: `10 13 16 21 30 15`
-/// * The diff is not `0`, so last line was not yet reached => continue
+/// * Then calculate the `line 1` diffs: `45 - 30 = 15` and so on...
+/// * Store them in the history list`: `x 3 5 9 15`
+/// * Range that is taken into account contains still 4 elements => continue
 ///
 /// **Step 1**
 /// * Add `15` (stored in first element) to `accumulator`: `accumulator == 60`
-/// * Calculate `line 2` diff by subtracting the diffs from `line 1`
-/// * Only `15` is available in `history[0]`, so iterate over the history until the last element
-///   that can affect the diff, and store the diffs in the Vec
-/// * Do iteration in reverse, so newly calculated diffs are immmediately propagated:
-///   `30 - 21 = 9`: `10 13 16 21 9 15`
-/// * Do iteration until the beginning of the array, so needed diff of this line is calculated:
-///   `15 - 9 = 6`: `10 13 16 21 9 6`
-///* Diff at position `0` is not `0`, so continue
+/// * Calculate `line 2` diffs: `15 - 9 = 6` and so on...
+/// * Store them in the history list`: `x x 2 4 6`
+/// * Range that is taken into account contains still 3 elements => continue
 ///
 /// **Step 2**
 /// * Add `6` to `accumulator`: `accumulator == 66`
-/// * Calculate `line 3` diff by reverse-iterating again over the past history affecting it,
-///   i.e. one element more than last iteration:
-///   * `21 - 16 = 5`: `10 13 16 5 9 6`
-///   * `9 - 5 = 4`: `10 13 16 5 4 6`
-///   * `6 - 4 = 2`: `10 13 16 5 4 2`
-/// * The diff is`2`, not `0`, so continue
+/// * Calculate `line 3` diffs: `6 - 4 = 2` and so on...
+/// * Store them in the history list`: `x x x 2 2`
+/// * Range that is taken into account contains still 2 elements => continue
 ///
 /// **Step 3**
 /// * Add `2` to `accumulator`: `accumulator == 68`
-/// * Calculate `line 4` diff:
-///   * `16 - 13 = 3`: `10 13 3 5 4 2`
-///   * `5 - 3 = 2`: `10 13 3 2 4 2`
-///   * `4 - 2 = 2`: `10 13 3 2 2 2`
-///   * `2 - 2 = 0`: `10 13 3 2 2 0`
-/// * Diff is `0`, stop and return `accumulator`
+/// * Calculate `line 4` diffs: `2 - 2 = 0`
+/// * Store them in the history list`: `x x x x 0`
+/// * Range that is taken into account contains still 1 element => continue
+///
+/// **Step 4**
+/// * No more diffs to calculate, stop loop
 ///
 /// ## Asymptotic order
 /// Should be `O(n²)` if I'm not mistaken.
 fn calc_next(history: impl Iterator<Item = isize>) -> isize {
-    let mut history: Vec<_> = history.collect();
-    history.reverse();
+    let mut list: Vec<_> = history.collect();
+    assert!(list.len() > 1);
+    list.reverse();
     let mut accu = 0;
-    let mut affecting_range_end = 0;
-    while history[0] != 0 {
-        affecting_range_end += 1;
-        accu += history[0];
-        for i in (0..affecting_range_end).rev() {
-            history[i] -= history[i + 1];
+    let mut affecting_range_end = list.len() - 1;
+    while affecting_range_end > 0 {
+        accu += list[0];
+        affecting_range_end -= 1;
+        for i in 0..affecting_range_end {
+            list[i] -= list[i + 1];
         }
     }
+
     accu
 }
 
