@@ -6,6 +6,16 @@ pub fn run(input: &str) -> isize {
         .sum()
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum CalcWhat {
+    Next,
+    Prev,
+}
+
+fn calc_next(history: impl Iterator<Item = isize>) -> isize {
+    calc(history, CalcWhat::Next)
+}
+
 /// Calculate the next element for a given history.
 ///
 /// ## Example
@@ -70,10 +80,12 @@ pub fn run(input: &str) -> isize {
 ///
 /// ## Asymptotic order
 /// Should be `O(n²)` if I'm not mistaken.
-fn calc_next(history: impl Iterator<Item = isize>) -> isize {
+pub fn calc(history: impl Iterator<Item = isize>, calc_what: CalcWhat) -> isize {
     let mut list: Vec<_> = history.collect();
     assert!(list.len() > 1);
-    list.reverse();
+    if calc_what == CalcWhat::Next {
+        list.reverse();
+    }
     let mut accu = 0;
     let mut affecting_range_end = list.len() - 1;
     while affecting_range_end > 0 {
