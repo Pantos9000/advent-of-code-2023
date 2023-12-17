@@ -15,3 +15,15 @@ fn main() {
     println!("Result1 is {result1}");
     println!("Result2 is {result2}");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1_solution() {
+        let input = read_input();
+        let result = part1::run(&input);
+        assert_eq!(result, 6831);
+    }
+}
