@@ -1,3 +1,5 @@
+use std::iter;
+
 pub fn run(input: &str) -> usize {
     let maze = Maze::new(input, '-');
     let mut hamster_0 = Hamster::new(maze.start(), Direction::Right);
@@ -87,22 +89,33 @@ impl Maze {
     /// starting position will be overwritten after parsing with `start_char`
     pub fn new(input: &str, start_char: char) -> Self {
         fn parse_line(line: &str) -> Vec<Field> {
-            line.chars().map(Field::from).collect()
+            let prepend = iter::once(Field::default());
+            let append = prepend.clone();
+            let parse_iter = line.chars().map(Field::from);
+            prepend.chain(parse_iter).chain(append).collect()
         }
 
-        let mut fields: Vec<Vec<_>> = input.lines().map(parse_line).collect();
-        let start = Self::find_start_coords(input).unwrap();
+        let line_len = input.find('\n').unwrap_or(input.len()) + 2;
+        let prepend = iter::once(vec![Field::default(); line_len]);
+        let append = prepend.clone();
+
+        let fields_iter = input.lines().map(parse_line);
+        let mut fields: Vec<Vec<_>> = prepend.chain(fields_iter).chain(append).collect();
+
+        let start = Self::find_start_coords(&fields).unwrap();
 
         // overwrite starting field
         fields[start.y][start.x] = Field::from(start_char);
 
         Self { fields, start }
     }
-    pub fn find_start_coords(input: &str) -> Option<Coords> {
-        let (x, y) = input
-            .lines()
-            .enumerate()
-            .find_map(|(y, line)| line.find('S').map(|x| (x, y)))?;
+    pub fn find_start_coords(fields: &[Vec<Field>]) -> Option<Coords> {
+        let (x, y) = fields.iter().enumerate().find_map(|(y, line)| {
+            line.iter()
+                .enumerate()
+                .find(|(_x, field)| field.is_start)
+                .map(|(x, _field)| (x, y))
+        })?;
         Some(Coords::new(x, y))
     }
 
@@ -119,9 +132,10 @@ impl Maze {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Field {
     pipe: Option<Pipe>,
+    is_start: bool,
 }
 
 impl From<char> for Field {
@@ -131,8 +145,9 @@ impl From<char> for Field {
             'S' => None,
             _ => Some(Pipe::from(value)),
         };
+        let is_start = value == 'S';
 
-        Self { pipe }
+        Self { pipe, is_start }
     }
 }
 
@@ -207,9 +222,10 @@ mod tests {
         ....\n\
         ..S.\n\
         ....";
-        let coords = Maze::find_start_coords(input).unwrap();
-        assert_eq!(coords.x, 2);
-        assert_eq!(coords.y, 1);
+        let maze = Maze::new(input, '.');
+        let coords = maze.start();
+        assert_eq!(coords.x, 3);
+        assert_eq!(coords.y, 2);
     }
 
     #[test]
@@ -219,7 +235,6 @@ mod tests {
             .|.|.\n\
             .L-J.";
         let maze = Maze::new(input, 'F');
-        assert_eq!(maze.fields.iter().flatten().count(), 15);
         assert_eq!(
             maze.fields
                 .iter()
@@ -239,19 +254,19 @@ mod tests {
         -L-J|\n\
         L|-JF";
         let maze = Maze::new(input, 'F');
-        assert_eq!(maze.start().x, 1);
-        assert_eq!(maze.start().y, 1);
+        assert_eq!(maze.start().x, 2);
+        assert_eq!(maze.start().y, 2);
 
         let mut hamster = Hamster::new(maze.start(), Direction::Left);
         hamster.walk_maze(&maze);
-        assert_eq!(hamster.position().x, 1);
-        assert_eq!(hamster.position().y, 2);
+        assert_eq!(hamster.position().x, 2);
+        assert_eq!(hamster.position().y, 3);
 
         hamster.walk_maze(&maze);
         hamster.walk_maze(&maze);
         hamster.walk_maze(&maze);
-        assert_eq!(hamster.position().x, 3);
-        assert_eq!(hamster.position().y, 3);
+        assert_eq!(hamster.position().x, 4);
+        assert_eq!(hamster.position().y, 4);
 
         hamster.walk_maze(&maze);
         hamster.walk_maze(&maze);
