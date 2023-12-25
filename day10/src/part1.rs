@@ -86,10 +86,11 @@ pub struct Maze {
 impl Maze {
     /// starting position will be overwritten after parsing with `start_char`
     pub fn new(input: &str, start_char: char) -> Self {
-        let mut fields: Vec<Vec<_>> = input
-            .lines()
-            .map(|line| line.chars().map(Field::from).collect())
-            .collect();
+        fn parse_line(line: &str) -> Vec<Field> {
+            line.chars().map(Field::from).collect()
+        }
+
+        let mut fields: Vec<Vec<_>> = input.lines().map(parse_line).collect();
         let start = Self::find_start_coords(input).unwrap();
 
         // overwrite starting field
