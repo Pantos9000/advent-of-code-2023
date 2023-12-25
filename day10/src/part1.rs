@@ -48,6 +48,12 @@ impl Hamster {
     pub fn position(&self) -> Coords {
         self.position
     }
+
+    pub fn take_dump(&self, maze: &mut Maze) {
+        let position = self.position();
+        let field = maze.get_field_mut(position);
+        field.pipe.unwrap().fill();
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
