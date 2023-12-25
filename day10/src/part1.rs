@@ -106,6 +106,10 @@ impl Maze {
     pub fn get_field(&self, coords: Coords) -> Field {
         self.fields[coords.y][coords.x]
     }
+
+    pub fn get_field_mut(&mut self, coords: Coords) -> &mut Field {
+        &mut self.fields[coords.y][coords.x]
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
