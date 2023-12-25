@@ -18,21 +18,22 @@ pub fn run(input: &str) -> usize {
 }
 
 /// Follows pipes
-struct Hamster {
+pub struct Hamster {
     position: Coords,
     direction: Direction,
 }
 
 impl Hamster {
     /// `entering_direction` is the direction the hamster won't walk (it won't walk backwards)
-    fn new(position: Coords, entering_direction: Direction) -> Self {
+    pub fn new(position: Coords, entering_direction: Direction) -> Self {
         Self {
             position,
             direction: entering_direction,
         }
     }
 
-    fn walk_maze(&mut self, maze: &Maze) {
+    /// walk one field further
+    pub fn walk_maze(&mut self, maze: &Maze) {
         let field = maze.get_field(self.position);
         let pipe = field.pipe.as_ref().unwrap();
         let direction_to_walk = pipe
@@ -44,13 +45,13 @@ impl Hamster {
         self.direction = *direction_to_walk;
     }
 
-    fn position(&self) -> Coords {
+    pub fn position(&self) -> Coords {
         self.position
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct Coords {
+pub struct Coords {
     x: usize,
     y: usize,
 }
@@ -71,13 +72,14 @@ impl Coords {
 }
 
 /// Coords are `[y][x]`
-struct Maze {
+pub struct Maze {
     fields: Vec<Vec<Field>>,
     start: Coords,
 }
 
 impl Maze {
-    fn new(input: &str, start_char: char) -> Self {
+    /// starting position will be overwritten after parsing with `start_char`
+    pub fn new(input: &str, start_char: char) -> Self {
         let mut fields: Vec<Vec<_>> = input
             .lines()
             .map(|line| line.chars().map(Field::from).collect())
@@ -89,7 +91,7 @@ impl Maze {
 
         Self { fields, start }
     }
-    fn find_start_coords(input: &str) -> Option<Coords> {
+    pub fn find_start_coords(input: &str) -> Option<Coords> {
         let (x, y) = input
             .lines()
             .enumerate()
@@ -97,17 +99,17 @@ impl Maze {
         Some(Coords::new(x, y))
     }
 
-    fn start(&self) -> Coords {
+    pub fn start(&self) -> Coords {
         self.start
     }
 
-    fn get_field(&self, coords: Coords) -> Field {
+    pub fn get_field(&self, coords: Coords) -> Field {
         self.fields[coords.y][coords.x]
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct Field {
+pub struct Field {
     pipe: Option<Pipe>,
 }
 
@@ -124,7 +126,7 @@ impl From<char> for Field {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct Pipe {
+pub struct Pipe {
     openings: [Direction; 2],
 }
 
@@ -150,7 +152,7 @@ impl Pipe {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-enum Direction {
+pub enum Direction {
     Up,
     Down,
     Left,
