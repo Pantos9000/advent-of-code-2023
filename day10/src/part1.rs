@@ -132,6 +132,7 @@ impl From<char> for Field {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Pipe {
     openings: [Direction; 2],
+    full: bool,
 }
 
 impl From<char> for Pipe {
@@ -145,13 +146,24 @@ impl From<char> for Pipe {
             'F' => [Direction::Right, Direction::Down],
             _ => panic!("unknown pipe form '{value}"),
         };
-        Self { openings }
+        Self {
+            openings,
+            full: false,
+        }
     }
 }
 
 impl Pipe {
     fn openings(&self) -> &[Direction; 2] {
         &self.openings
+    }
+
+    pub fn fill(&mut self) {
+        self.full = true;
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.full
     }
 }
 
