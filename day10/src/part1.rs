@@ -36,25 +36,40 @@ impl Hamster {
 
     /// walk one field further
     pub fn walk_maze(&mut self, maze: &Maze) {
-        let field = maze.get_field(self.position);
-        let pipe = field.pipe.as_ref().unwrap();
-        let direction_to_walk = pipe
-            .openings()
-            .iter()
-            .find(|direction| !direction.is_opposite(self.direction))
+        let direction_to_walk = self.exiting_direction(maze);
+        self.position = self
+            .position
+            .move_into_direction(direction_to_walk)
             .unwrap();
-        self.position.move_into_direction(*direction_to_walk);
-        self.direction = *direction_to_walk;
+        self.direction = direction_to_walk;
     }
 
     pub fn position(&self) -> Coords {
         self.position
     }
 
+    /// Get the direction the hamster is currently facing, which is equal to the
+    /// side of the current pipe where it entered.
+    pub fn direction(&self) -> Direction {
+        self.direction
+    }
+
+    pub fn exiting_direction(&self, maze: &Maze) -> Direction {
+        maze.get_field(self.position)
+            .unwrap()
+            .pipe()
+            .unwrap()
+            .follow(self.direction)
+    }
+
+    pub fn peek<'maze>(&self, maze: &'maze Maze, direction: Direction) -> &'maze Field {
+        let coords = self.position().move_into_direction(direction).unwrap();
+        maze.get_field(coords).unwrap()
+    }
+
     pub fn take_dump(&self, maze: &mut Maze) {
-        let position = self.position();
-        let field = maze.get_field_mut(position);
-        field.pipe.unwrap().fill();
+        let field = maze.get_field_mut(self.position()).unwrap();
+        field.pipe_mut().unwrap().fill();
     }
 }
 
@@ -65,17 +80,31 @@ pub struct Coords {
 }
 
 impl Coords {
-    fn new(x: usize, y: usize) -> Self {
+    pub fn new(x: usize, y: usize) -> Self {
         Coords { x, y }
     }
 
-    fn move_into_direction(&mut self, direction: Direction) {
+    pub fn move_into_direction(&self, direction: Direction) -> Option<Self> {
+        let mut ret = *self;
         match direction {
-            Direction::Up => self.y -= 1,
-            Direction::Down => self.y += 1,
-            Direction::Left => self.x -= 1,
-            Direction::Right => self.x += 1,
+            Direction::Up => {
+                if ret.y == 0 {
+                    return None;
+                } else {
+                    ret.y -= 1
+                }
+            }
+            Direction::Down => ret.y += 1,
+            Direction::Left => {
+                if ret.x == 0 {
+                    return None;
+                } else {
+                    ret.x -= 1
+                }
+            }
+            Direction::Right => ret.x += 1,
         }
+        Some(ret)
     }
 }
 
@@ -109,6 +138,7 @@ impl Maze {
 
         Self { fields, start }
     }
+
     pub fn find_start_coords(fields: &[Vec<Field>]) -> Option<Coords> {
         let (x, y) = fields.iter().enumerate().find_map(|(y, line)| {
             line.iter()
@@ -123,19 +153,29 @@ impl Maze {
         self.start
     }
 
-    pub fn get_field(&self, coords: Coords) -> Field {
-        self.fields[coords.y][coords.x]
+    pub fn get_field(&self, coords: Coords) -> Option<&Field> {
+        self.fields.get(coords.y)?.get(coords.x)
     }
 
-    pub fn get_field_mut(&mut self, coords: Coords) -> &mut Field {
-        &mut self.fields[coords.y][coords.x]
+    pub fn get_field_mut(&mut self, coords: Coords) -> Option<&mut Field> {
+        self.fields.get_mut(coords.y)?.get_mut(coords.x)
+    }
+
+    pub fn size(&self) -> usize {
+        self.fields.len() * self.fields[0].len()
+    }
+
+    pub fn into_iter(self) -> impl Iterator<Item = Field> {
+        self.fields.into_iter().flat_map(|v| v.into_iter())
     }
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Field {
     pipe: Option<Pipe>,
     is_start: bool,
+    is_outer: bool,
+    is_inner: bool,
 }
 
 impl From<char> for Field {
@@ -147,11 +187,42 @@ impl From<char> for Field {
         };
         let is_start = value == 'S';
 
-        Self { pipe, is_start }
+        Self {
+            pipe,
+            is_start,
+            is_outer: false,
+            is_inner: false,
+        }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+impl Field {
+    pub fn pipe(&self) -> Option<&Pipe> {
+        self.pipe.as_ref()
+    }
+
+    pub fn pipe_mut(&mut self) -> Option<&mut Pipe> {
+        self.pipe.as_mut()
+    }
+
+    pub fn mark_outer(&mut self) {
+        self.is_outer = true;
+    }
+
+    pub fn is_outer(&self) -> bool {
+        self.is_outer
+    }
+
+    pub fn mark_inner(&mut self) {
+        self.is_inner = true;
+    }
+
+    pub fn is_inner(&self) -> bool {
+        self.is_inner
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Pipe {
     openings: [Direction; 2],
     full: bool,
@@ -187,6 +258,15 @@ impl Pipe {
     pub fn is_full(&self) -> bool {
         self.full
     }
+
+    pub fn follow(&self, entering_direction: Direction) -> Direction {
+        let exit_direction = self
+            .openings()
+            .iter()
+            .find(|direction| !direction.is_opposite(entering_direction))
+            .unwrap();
+        *exit_direction
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -198,16 +278,34 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn is_opposite(&self, other: Direction) -> bool {
+    pub fn is_opposite(&self, other: Direction) -> bool {
         self.opposite() == other
     }
 
-    fn opposite(&self) -> Self {
+    pub fn opposite(&self) -> Self {
         match self {
             Self::Up => Self::Down,
             Self::Down => Self::Up,
             Self::Left => Self::Right,
             Self::Right => Self::Left,
+        }
+    }
+
+    pub fn left(&self) -> Self {
+        match self {
+            Self::Up => Self::Left,
+            Self::Down => Self::Right,
+            Self::Left => Self::Down,
+            Self::Right => Self::Up,
+        }
+    }
+
+    pub fn right(&self) -> Self {
+        match self {
+            Self::Up => Self::Right,
+            Self::Down => Self::Left,
+            Self::Left => Self::Up,
+            Self::Right => Self::Down,
         }
     }
 }
