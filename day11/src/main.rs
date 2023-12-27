@@ -22,6 +22,7 @@ mod tests {
 
     #[test]
     fn test_part1_solution() {
-        // TODO
+        let input = read_input();
+        assert_eq!(part1::run(&input), 9608724);
     }
 }

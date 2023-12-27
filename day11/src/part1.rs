@@ -3,9 +3,25 @@ use std::str::FromStr;
 pub fn run(input: &str) -> usize {
     let mut universe = Universe::from_str(input).unwrap();
     universe.expand();
-    todo!()
+    sum_distances(&universe)
 }
 
+fn sum_distances(universe: &Universe) -> usize {
+    let galaxies = universe.galaxies();
+    galaxies
+        .iter()
+        .take(galaxies.len() - 1)
+        .enumerate()
+        .flat_map(|(index_a, galaxy_a)| {
+            galaxies
+                .iter()
+                .skip(index_a + 1)
+                .map(|galaxy_b| galaxy_a.distance(galaxy_b))
+        })
+        .sum()
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Galaxy {
     x: usize,
     y: usize,
@@ -14,6 +30,10 @@ pub struct Galaxy {
 impl Galaxy {
     fn new(x: usize, y: usize) -> Self {
         Self { x, y }
+    }
+
+    fn distance(&self, other: &Galaxy) -> usize {
+        self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
     }
 }
 
@@ -64,6 +84,13 @@ impl Universe {
             galaxy.x += num_columns_doubled_before_galaxy;
             galaxy.y += num_rows_doubled_before_galaxy;
         }
+
+        self.size_x += columns_to_double.len();
+        self.size_y += rows_to_double.len();
+    }
+
+    fn galaxies(&self) -> &Vec<Galaxy> {
+        &self.galaxies
     }
 }
 
@@ -122,5 +149,27 @@ mod tests {
         let galaxy = universe.galaxies.pop().unwrap();
         assert_eq!(galaxy.x, 1);
         assert_eq!(galaxy.y, 0);
+
+        assert_eq!(universe.size_x, 5);
+        assert_eq!(universe.size_y, 7);
+    }
+
+    #[test]
+    fn test_distance_example() {
+        let input = "\
+            ....#........\n\
+            .........#...\n\
+            #............\n\
+            .............\n\
+            .............\n\
+            ........#....\n\
+            .#...........\n\
+            ............#\n\
+            .............\n\
+            .............\n\
+            .........#...\n\
+            #....#.......";
+        let universe = Universe::from_str(input).unwrap();
+        assert_eq!(sum_distances(&universe), 374);
     }
 }
