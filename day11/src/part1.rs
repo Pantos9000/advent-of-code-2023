@@ -126,7 +126,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_universe_expand() {
+    fn test_universe_expand_rate_1() {
         let input = "\
             .#.#\n\
             ....\n\
