@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 pub fn run(input: &str) -> usize {
     let mut universe = Universe::from_str(input).unwrap();
-    universe.expand(1);
+    universe.expand(2);
     sum_distances(&universe)
 }
 
@@ -61,7 +61,11 @@ impl Universe {
     }
 
     /// each empty row/col will be expanded by the given `expansion_rate`.
+    ///
+    /// a rate of 2 means each empty row/col will be doubled. a rate of 1 won't chang anything.
     pub fn expand(&mut self, expansion_rate: usize) {
+        assert!(expansion_rate > 0);
+
         let mut empty_rows = Vec::new();
         let mut empty_cols = Vec::new();
 
@@ -80,8 +84,8 @@ impl Universe {
         for galaxy in &mut self.galaxies {
             let num_empty_cols_before_galaxy = empty_cols.iter().filter(|x| **x < galaxy.x).count();
             let num_empty_rows_before_galaxy = empty_rows.iter().filter(|y| **y < galaxy.y).count();
-            galaxy.x += num_empty_cols_before_galaxy * expansion_rate;
-            galaxy.y += num_empty_rows_before_galaxy * expansion_rate;
+            galaxy.x += num_empty_cols_before_galaxy * (expansion_rate - 1);
+            galaxy.y += num_empty_rows_before_galaxy * (expansion_rate - 1);
         }
 
         self.size_x += empty_cols.len();
@@ -134,7 +138,7 @@ mod tests {
             ....\n\
             #...";
         let mut universe = Universe::from_str(input).unwrap();
-        universe.expand(1);
+        universe.expand(2);
 
         let galaxy = universe.galaxies.pop().unwrap();
         assert_eq!(galaxy.x, 0);
@@ -152,6 +156,34 @@ mod tests {
         assert_eq!(universe.size_x, 5);
         assert_eq!(universe.size_y, 7);
     }
+
+    // #[test]
+    // fn test_universe_expand_rate_2() {
+    //     let input = "\
+    //         .#.#\n\
+    //         ....\n\
+    //         .#..\n\
+    //         ....\n\
+    //         #...";
+    //     let mut universe = Universe::from_str(input).unwrap();
+    //     universe.expand(2);
+    //
+    //     let galaxy = universe.galaxies.pop().unwrap();
+    //     assert_eq!(galaxy.x, 0);
+    //     assert_eq!(galaxy.y, 6);
+    //     let galaxy = universe.galaxies.pop().unwrap();
+    //     assert_eq!(galaxy.x, 1);
+    //     assert_eq!(galaxy.y, 3);
+    //     let galaxy = universe.galaxies.pop().unwrap();
+    //     assert_eq!(galaxy.x, 4);
+    //     assert_eq!(galaxy.y, 0);
+    //     let galaxy = universe.galaxies.pop().unwrap();
+    //     assert_eq!(galaxy.x, 1);
+    //     assert_eq!(galaxy.y, 0);
+    //
+    //     assert_eq!(universe.size_x, 5);
+    //     assert_eq!(universe.size_y, 7);
+    // }
 
     #[test]
     fn test_distance_example() {
