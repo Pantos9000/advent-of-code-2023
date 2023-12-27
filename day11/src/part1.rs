@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 pub fn run(input: &str) -> usize {
     let mut universe = Universe::from_str(input).unwrap();
-    universe.expand();
+    universe.expand(1);
     sum_distances(&universe)
 }
 
@@ -60,33 +60,32 @@ impl Universe {
             == 0
     }
 
-    pub fn expand(&mut self) {
-        let mut rows_to_double = Vec::new();
-        let mut columns_to_double = Vec::new();
+    /// each empty row/col will be expanded by the given `expansion_rate`.
+    pub fn expand(&mut self, expansion_rate: usize) {
+        let mut empty_rows = Vec::new();
+        let mut empty_cols = Vec::new();
 
         for x in 0..self.size_x {
             if self.is_column_empty(x) {
-                columns_to_double.push(x);
+                empty_cols.push(x);
             }
         }
 
         for y in 0..self.size_y {
             if self.is_row_empty(y) {
-                rows_to_double.push(y);
+                empty_rows.push(y);
             }
         }
 
         for galaxy in &mut self.galaxies {
-            let num_columns_doubled_before_galaxy =
-                columns_to_double.iter().filter(|x| **x < galaxy.x).count();
-            let num_rows_doubled_before_galaxy =
-                rows_to_double.iter().filter(|y| **y < galaxy.y).count();
-            galaxy.x += num_columns_doubled_before_galaxy;
-            galaxy.y += num_rows_doubled_before_galaxy;
+            let num_empty_cols_before_galaxy = empty_cols.iter().filter(|x| **x < galaxy.x).count();
+            let num_empty_rows_before_galaxy = empty_rows.iter().filter(|y| **y < galaxy.y).count();
+            galaxy.x += num_empty_cols_before_galaxy * expansion_rate;
+            galaxy.y += num_empty_rows_before_galaxy * expansion_rate;
         }
 
-        self.size_x += columns_to_double.len();
-        self.size_y += rows_to_double.len();
+        self.size_x += empty_cols.len();
+        self.size_y += empty_rows.len();
     }
 
     fn galaxies(&self) -> &Vec<Galaxy> {
@@ -135,7 +134,7 @@ mod tests {
             ....\n\
             #...";
         let mut universe = Universe::from_str(input).unwrap();
-        universe.expand();
+        universe.expand(1);
 
         let galaxy = universe.galaxies.pop().unwrap();
         assert_eq!(galaxy.x, 0);
