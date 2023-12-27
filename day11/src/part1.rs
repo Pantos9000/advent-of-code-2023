@@ -6,7 +6,7 @@ pub fn run(input: &str) -> usize {
     sum_distances(&universe)
 }
 
-fn sum_distances(universe: &Universe) -> usize {
+pub fn sum_distances(universe: &Universe) -> usize {
     let galaxies = universe.galaxies();
     galaxies
         .iter()
@@ -60,7 +60,7 @@ impl Universe {
             == 0
     }
 
-    fn expand(&mut self) {
+    pub fn expand(&mut self) {
         let mut rows_to_double = Vec::new();
         let mut columns_to_double = Vec::new();
 
