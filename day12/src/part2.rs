@@ -132,6 +132,42 @@ mod tests {
     }
 
     #[test]
+    fn test_part2_example1() {
+        let line = "???.### 1,1,3";
+        assert_eq!(count_per_line_with_unfolding(line), 1);
+    }
+
+    #[test]
+    fn test_part2_example2() {
+        let line = ".??..??...?##. 1,1,3";
+        assert_eq!(count_per_line_with_unfolding(line), 16384);
+    }
+
+    #[test]
+    fn test_part2_example3() {
+        let line = "?#?#?#?#?#?#?#? 1,3,1,6";
+        assert_eq!(count_per_line_with_unfolding(line), 1);
+    }
+
+    #[test]
+    fn test_part2_example4() {
+        let line = "????.#...#... 4,1,1";
+        assert_eq!(count_per_line_with_unfolding(line), 16);
+    }
+
+    #[test]
+    fn test_part2_example5() {
+        let line = "????.######..#####. 1,6,5";
+        assert_eq!(count_per_line_with_unfolding(line), 2500);
+    }
+
+    #[test]
+    fn test_part2_example6() {
+        let line = "?###???????? 3,2,1";
+        assert_eq!(count_per_line_with_unfolding(line), 506250);
+    }
+
+    #[test]
     #[should_panic]
     fn test_unfold_springs_panics_if_too_long() {
         let line = "...............";
