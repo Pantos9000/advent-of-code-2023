@@ -1,0 +1,4 @@
+* kombinatorik gruppen: urne mit zurücklegen ohne reihenfolge
+** `(n+k-1)! / (n-1)! / k!`
+** n: 1 + [number groups]
+** k: [number springs] - [sum of broken springs in all groups]
