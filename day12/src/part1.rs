@@ -2,30 +2,14 @@ use std::cmp;
 use std::str::FromStr;
 
 pub fn run(input: &str) -> usize {
-    input.lines().map(count_possible_arrangements).sum()
+    input.lines().map(count_per_line).sum()
 }
 
-pub fn count_possible_arrangements(line: &str) -> usize {
+fn count_per_line(line: &str) -> usize {
     let springs = BitSprings::from_str(line).unwrap();
-    let group_springs = GroupSprings::from_str(line).unwrap();
+    let groups = GroupSprings::from_str(line).unwrap();
 
-    let mut num = 0;
-    let mut arrangements = vec![springs];
-
-    while let Some(springs) = arrangements.pop() {
-        let Some((a, b)) = springs.collapse_next() else {
-            num += 1;
-            continue;
-        };
-        if group_springs.validate(&a).is_ok() {
-            arrangements.push(a);
-        }
-        if group_springs.validate(&b).is_ok() {
-            arrangements.push(b);
-        }
-    }
-
-    num
+    springs.count_possible_arrangements(groups)
 }
 
 #[derive(Clone)]
@@ -300,6 +284,26 @@ impl BitSprings {
         }
     }
 
+    pub fn count_possible_arrangements(self, groups: GroupSprings) -> usize {
+        let mut num = 0;
+        let mut arrangements = vec![self];
+
+        while let Some(springs) = arrangements.pop() {
+            let Some((a, b)) = springs.collapse_next() else {
+                num += 1;
+                continue;
+            };
+            if groups.validate(&a).is_ok() {
+                arrangements.push(a);
+            }
+            if groups.validate(&b).is_ok() {
+                arrangements.push(b);
+            }
+        }
+
+        num
+    }
+
     pub fn collapse_next(self) -> Option<(Self, Self)> {
         if self.unknown_mask == 0 {
             return None;
@@ -357,36 +361,36 @@ mod tests {
     #[test]
     fn test_example_1() {
         let line = "???.### 1,1,3";
-        assert_eq!(count_possible_arrangements(line), 1);
+        assert_eq!(count_per_line(line), 1);
     }
 
     #[test]
     fn test_example_2() {
         let line = ".??..??...?##. 1,1,3";
-        assert_eq!(count_possible_arrangements(line), 4);
+        assert_eq!(count_per_line(line), 4);
     }
 
     #[test]
     fn test_example_3() {
         let line = "?#?#?#?#?#?#?#? 1,3,1,6";
-        assert_eq!(count_possible_arrangements(line), 1);
+        assert_eq!(count_per_line(line), 1);
     }
 
     #[test]
     fn test_example_4() {
         let line = "????.#...#... 4,1,1";
-        assert_eq!(count_possible_arrangements(line), 1);
+        assert_eq!(count_per_line(line), 1);
     }
 
     #[test]
     fn test_example_5() {
         let line = "????.######..#####. 1,6,5";
-        assert_eq!(count_possible_arrangements(line), 4);
+        assert_eq!(count_per_line(line), 4);
     }
 
     #[test]
     fn test_example_6() {
         let line = "?###???????? 3,2,1";
-        assert_eq!(count_possible_arrangements(line), 10);
+        assert_eq!(count_per_line(line), 10);
     }
 }
