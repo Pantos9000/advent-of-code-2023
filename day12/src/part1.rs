@@ -61,6 +61,14 @@ impl FromStr for GroupSprings {
 }
 
 impl GroupSprings {
+    pub fn unfold(&mut self, factor: usize) {
+        self.groups = std::iter::repeat(self.groups.iter())
+            .take(factor)
+            .flatten()
+            .map(|&x| x)
+            .collect();
+    }
+
     pub fn validate(&self, springs: &BitSprings) -> Result<(), ()> {
         struct Checker {
             buf: u128,
@@ -260,6 +268,38 @@ impl FromStr for BitSprings {
 }
 
 impl BitSprings {
+    pub fn unfold(&mut self, factor: usize) {
+        if (self.num_springs + 1) * factor > 128 {
+            panic!("factor is too big for this spring, won't fit in the representation!");
+        }
+
+        if factor == 0 {
+            self.broken_mask = 0;
+            self.unknown_mask = 0;
+            self.num_springs = 0;
+        }
+
+        let old_broken = self.broken_mask;
+        let old_unknown = self.unknown_mask;
+        let old_num = self.num_springs;
+
+        for _ in 0..factor - 1 {
+            // first shift in 1x '?'
+            self.broken_mask <<= 1;
+            self.broken_mask |= 0;
+            self.unknown_mask <<= 1;
+            self.unknown_mask |= 1;
+            self.num_springs += 1;
+
+            // then shift in old mask
+            self.broken_mask <<= old_num;
+            self.broken_mask |= old_broken;
+            self.unknown_mask <<= old_num;
+            self.unknown_mask |= old_unknown;
+            self.num_springs += old_num;
+        }
+    }
+
     pub fn collapse_next(self) -> Option<(Self, Self)> {
         if self.unknown_mask == 0 {
             return None;
