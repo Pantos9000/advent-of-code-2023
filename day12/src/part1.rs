@@ -63,7 +63,7 @@ impl FromStr for GroupSprings {
 impl GroupSprings {
     pub fn validate(&self, springs: &BitSprings) -> Result<(), ()> {
         struct Checker {
-            buf: u32,
+            buf: u128,
             num_remaining: usize,
             num_ignored: usize,
         }
@@ -197,8 +197,8 @@ impl GroupSprings {
 
 #[derive(Clone)]
 pub struct BitSprings {
-    broken_mask: u32,
-    unknown_mask: u32,
+    broken_mask: u128,
+    unknown_mask: u128,
     num_springs: usize,
 }
 
@@ -237,7 +237,7 @@ impl FromStr for BitSprings {
             '.' => 0,
             _ => panic!("unknown spring symbol"),
         };
-        fn parse(spring_str: &str, parse_func: impl Fn(char) -> u32) -> u32 {
+        fn parse(spring_str: &str, parse_func: impl Fn(char) -> u128) -> u128 {
             spring_str
                 .chars()
                 .map(parse_func)
