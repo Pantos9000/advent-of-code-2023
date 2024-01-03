@@ -33,6 +33,18 @@ struct GroupSprings {
     groups: Vec<usize>,
 }
 
+impl std::fmt::Debug for GroupSprings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = self
+            .groups
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        write!(f, "{s}")
+    }
+}
+
 impl FromStr for GroupSprings {
     type Err = ();
 
