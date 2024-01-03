@@ -29,7 +29,7 @@ pub fn count_possible_arrangements(line: &str) -> usize {
 }
 
 #[derive(Clone)]
-struct GroupSprings {
+pub struct GroupSprings {
     groups: Vec<usize>,
 }
 
@@ -61,7 +61,7 @@ impl FromStr for GroupSprings {
 }
 
 impl GroupSprings {
-    fn validate(&self, springs: &BitSprings) -> Result<(), ()> {
+    pub fn validate(&self, springs: &BitSprings) -> Result<(), ()> {
         struct Checker {
             buf: u32,
             num_remaining: usize,
@@ -196,7 +196,7 @@ impl GroupSprings {
 }
 
 #[derive(Clone)]
-struct BitSprings {
+pub struct BitSprings {
     broken_mask: u32,
     unknown_mask: u32,
     num_springs: usize,
@@ -260,7 +260,7 @@ impl FromStr for BitSprings {
 }
 
 impl BitSprings {
-    fn collapse_next(self) -> Option<(Self, Self)> {
+    pub fn collapse_next(self) -> Option<(Self, Self)> {
         if self.unknown_mask == 0 {
             return None;
         }
