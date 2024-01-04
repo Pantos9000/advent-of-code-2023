@@ -1,5 +1,9 @@
 pub fn run(input: &str) -> usize {
-    0 // TODO
+    input
+        .split("\n\n")
+        .map(Map::from_block)
+        .map(|map| map.summarize())
+        .sum()
 }
 
 struct Map {
