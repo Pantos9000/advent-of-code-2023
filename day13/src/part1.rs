@@ -8,7 +8,7 @@ struct Map {
 }
 
 impl Map {
-    fn from_block(block: &str) -> Self {
+    pub fn from_block(block: &str) -> Self {
         fn parse_line(line: &str) -> u32 {
             line.chars()
                 .enumerate()
@@ -43,6 +43,30 @@ impl Map {
             col_hashes,
         }
     }
+
+    fn is_mirroring(hashes: &[u32], index: usize) -> bool {
+        let first_side = hashes.iter().take(index + 1).rev();
+        let second_side = hashes.iter().skip(index + 1);
+        first_side
+            .zip(second_side)
+            .all(|(first, second)| first == second)
+    }
+
+    fn summarize_hashes(hashes: &[u32]) -> usize {
+        hashes
+            .iter()
+            .take(hashes.len() - 1)
+            .enumerate()
+            .filter(|(i, _)| Self::is_mirroring(hashes, *i))
+            .map(|(i, _)| i + 1)
+            .sum()
+    }
+
+    pub fn summarize(&self) -> usize {
+        let sum_rows = Self::summarize_hashes(&self.row_hashes);
+        let sum_cols = Self::summarize_hashes(&self.col_hashes);
+        100 * sum_rows + sum_cols
+    }
 }
 
 #[cfg(test)]
@@ -58,5 +82,61 @@ mod tests {
         let map = Map::from_block(block);
         assert_eq!(map.row_hashes, vec![0, 2, 1]);
         assert_eq!(map.col_hashes, vec![4, 2]);
+    }
+
+    #[test]
+    fn test_map_is_mirroring() {
+        let hashes = [3, 2, 2, 3];
+        assert!(!Map::is_mirroring(&hashes, 0));
+        assert!(Map::is_mirroring(&hashes, 1));
+    }
+
+    #[test]
+    fn test_example1() {
+        let block = "\
+            #.##..##.\n\
+            ..#.##.#.\n\
+            ##......#\n\
+            ##......#\n\
+            ..#.##.#.\n\
+            ..##..##.\n\
+            #.#.##.#.";
+        let map = Map::from_block(block);
+        assert_eq!(map.summarize(), 5);
+    }
+
+    #[test]
+    fn test_example2() {
+        let block = "\
+            #...##..#\n\
+            #....#..#\n\
+            ..##..###\n\
+            #####.##.\n\
+            #####.##.\n\
+            ..##..###\n\
+            #....#..#";
+        let map = Map::from_block(block);
+        assert_eq!(map.summarize(), 400);
+    }
+
+    #[test]
+    fn test_block_example() {
+        let input = "\
+            #.##..##.\n\
+            ..#.##.#.\n\
+            ##......#\n\
+            ##......#\n\
+            ..#.##.#.\n\
+            ..##..##.\n\
+            #.#.##.#.\n\
+            \n\
+            #...##..#\n\
+            #....#..#\n\
+            ..##..###\n\
+            #####.##.\n\
+            #####.##.\n\
+            ..##..###\n\
+            #....#..#";
+        assert_eq!(run(input), 405);
     }
 }
