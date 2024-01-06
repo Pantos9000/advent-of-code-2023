@@ -45,11 +45,12 @@ impl FromStr for GroupSprings {
 }
 
 impl GroupSprings {
+    #[allow(dead_code)] // part2 uses different solution now
     pub fn unfold(&mut self, factor: usize) {
         self.groups = std::iter::repeat(self.groups.iter())
             .take(factor)
             .flatten()
-            .map(|&x| x)
+            .copied()
             .collect();
     }
 
@@ -101,7 +102,7 @@ impl GroupSprings {
                 // now shift out the good springs
                 self.shift_out(num_good_springs);
 
-                return Ok(());
+                Ok(())
             }
 
             fn check_only_good_remaining(&self) -> Result<(), ()> {
@@ -180,7 +181,7 @@ impl GroupSprings {
             if groups.next().is_some() {
                 return Err(());
             }
-            // checker.check_only_good_remaining()?;
+            checker.check_only_good_remaining()?;
         }
 
         Ok(())
@@ -252,6 +253,7 @@ impl FromStr for BitSprings {
 }
 
 impl BitSprings {
+    #[allow(dead_code)] // part2 uses different solution now
     pub fn unfold(&mut self, factor: usize) {
         if (self.num_springs + 1) * factor > 128 {
             panic!("factor is too big for this spring, won't fit in the representation!");
