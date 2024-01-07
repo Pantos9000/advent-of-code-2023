@@ -149,31 +149,30 @@ impl Record {
         let current_spring = springs[0];
         let current_count = counts[0];
 
-        let continue_with_spring_ok = || {
+        let mut result = 0;
+
+        // assume spring is ok
+        if current_spring == Spring::Ok || current_spring == Spring::Unknown {
             let next_springs = &springs[1..];
-            Self::possible_arrangements_inner(next_springs, counts)
-        };
-        let continue_with_spring_damaged = || {
-            // invariant is valid, as next spring is damaged
-            if !Self::is_valid_arrangement(springs, counts) {
-                return 0;
-            }
-
-            // We checked for valid config, so the damaged springs have to exist. We also skip the
-            // mandatory Ok spring after the damaged ones, unless we are at the end of the record.
-            let springs_to_skip = current_count + 1;
-            let next_springs = springs
-                .get(springs_to_skip..)
-                .unwrap_or(springs.get(current_count..).unwrap());
-            let next_counts = &counts[1..];
-            Self::possible_arrangements_inner(next_springs, next_counts)
-        };
-
-        match current_spring {
-            Spring::Ok => continue_with_spring_ok(),
-            Spring::Damaged => continue_with_spring_damaged(),
-            Spring::Unknown => continue_with_spring_ok() + continue_with_spring_damaged(),
+            result += Self::possible_arrangements_inner(next_springs, counts);
         }
+
+        // assume spring is damaged
+        if current_spring == Spring::Damaged || current_spring == Spring::Unknown {
+            // invariant is valid, as next spring is damaged
+            if Self::is_valid_arrangement(springs, counts) {
+                // We checked for valid config, so the damaged springs have to exist. We also skip the
+                // mandatory Ok spring after the damaged ones, unless we are at the end of the record.
+                let springs_to_skip = current_count + 1;
+                let next_springs = springs
+                    .get(springs_to_skip..)
+                    .unwrap_or(springs.get(current_count..).unwrap());
+                let next_counts = &counts[1..];
+                result += Self::possible_arrangements_inner(next_springs, next_counts);
+            }
+        }
+
+        result
     }
 }
 
