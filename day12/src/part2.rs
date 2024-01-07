@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::iter;
 use std::str::FromStr;
 
@@ -77,7 +78,8 @@ impl std::fmt::Display for Record {
 
 impl Record {
     fn count_possible_arrangements(&self) -> usize {
-        Self::possible_arrangements_inner(&self.springs, &self.counts)
+        let mut cache = Cache::new();
+        Self::possible_arrangements_inner(&self.springs, &self.counts, &mut cache)
     }
 
     fn unfold(&mut self, factor: usize) {
@@ -134,8 +136,15 @@ impl Record {
         true
     }
 
-    // TODO memo
-    fn possible_arrangements_inner(springs: &[Spring], counts: &[usize]) -> usize {
+    fn possible_arrangements_inner(
+        springs: &[Spring],
+        counts: &[usize],
+        cache: &mut Cache,
+    ) -> usize {
+        if let Some(cached_val) = cache.get(springs, counts) {
+            return cached_val;
+        }
+
         if springs.is_empty() || counts.is_empty() {
             // we reached the end, so if this is a valid combination, return count of 1
             return if Self::is_valid_arrangement(springs, counts) {
@@ -154,7 +163,7 @@ impl Record {
         // assume spring is ok
         if current_spring == Spring::Ok || current_spring == Spring::Unknown {
             let next_springs = &springs[1..];
-            result += Self::possible_arrangements_inner(next_springs, counts);
+            result += Self::possible_arrangements_inner(next_springs, counts, cache);
         }
 
         // assume spring is damaged
@@ -168,11 +177,38 @@ impl Record {
                     .get(springs_to_skip..)
                     .unwrap_or(springs.get(current_count..).unwrap());
                 let next_counts = &counts[1..];
-                result += Self::possible_arrangements_inner(next_springs, next_counts);
+                result += Self::possible_arrangements_inner(next_springs, next_counts, cache);
             }
         }
 
+        cache.add(springs, counts, result);
+
         result
+    }
+}
+
+#[derive(Debug, Default)]
+struct Cache {
+    data: HashMap<u16, usize>,
+}
+
+impl Cache {
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn calc_key(springs: &[Spring], counts: &[usize]) -> u16 {
+        (springs.len() as u16) | ((counts.len() as u16) << 8)
+    }
+
+    fn add(&mut self, springs: &[Spring], counts: &[usize], result: usize) {
+        let key = Self::calc_key(springs, counts);
+        self.data.insert(key, result);
+    }
+
+    fn get(&self, springs: &[Spring], counts: &[usize]) -> Option<usize> {
+        let key = Self::calc_key(springs, counts);
+        self.data.get(&key).copied()
     }
 }
 
@@ -197,14 +233,22 @@ mod tests {
     fn test_inner_count_arrangements_accepts_empty() {
         let springs = Vec::new();
         let counts = Vec::new();
-        assert_eq!(Record::possible_arrangements_inner(&springs, &counts), 1);
+        let mut cache = Cache::new();
+        assert_eq!(
+            Record::possible_arrangements_inner(&springs, &counts, &mut cache),
+            1
+        );
     }
 
     #[test]
     fn test_inner_count_arrangements_counts_one() {
         let springs = vec![Spring::Ok, Spring::Damaged, Spring::Ok];
         let counts = vec![1];
-        assert_eq!(Record::possible_arrangements_inner(&springs, &counts), 1);
+        let mut cache = Cache::new();
+        assert_eq!(
+            Record::possible_arrangements_inner(&springs, &counts, &mut cache),
+            1
+        );
     }
 
     #[test]
