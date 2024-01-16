@@ -2,7 +2,7 @@ pub fn run(input: &str) -> usize {
     input.split(',').map(hash).sum()
 }
 
-fn hash(s: &str) -> usize {
+pub fn hash(s: &str) -> usize {
     let mut hasher = Hasher::default();
     for c in s.chars() {
         hasher.advance(c);
