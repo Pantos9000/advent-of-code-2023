@@ -69,9 +69,9 @@ struct Instruction<'a> {
 impl<'a> Instruction<'a> {
     fn parse(s: &'a str) -> Self {
         let s = Self::remove_newline(s);
-        let box_id = hash(s);
         let operation = Operation::parse(s);
         let label = Self::parse_label(s, operation);
+        let box_id = hash(label);
         Self {
             box_id,
             label,
