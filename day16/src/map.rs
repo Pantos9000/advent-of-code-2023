@@ -1,5 +1,6 @@
 use crate::direction::Direction;
 
+#[derive(Clone)]
 pub struct Map {
     fields: Vec<Vec<Field>>,
 }
@@ -28,8 +29,17 @@ impl Map {
             .filter(|field| field.was_visited())
             .count()
     }
+
+    pub fn width(&self) -> usize {
+        self.fields[0].len()
+    }
+
+    pub fn height(&self) -> usize {
+        self.fields.len()
+    }
 }
 
+#[derive(Clone)]
 pub struct Field {
     shape: Shape,
     traversed: Traversed,
