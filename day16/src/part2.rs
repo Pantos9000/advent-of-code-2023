@@ -50,3 +50,37 @@ fn hamsters_from_right(map: &Map) -> impl Iterator<Item = QuantumHamster> {
         .map(move |x| Coords::new(x, y))
         .map(move |position| QuantumHamster::new(position, direction))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const EXAMPLE: &str = "\
+        .|...\\....\n\
+        |.-.\\.....\n\
+        .....|-...\n\
+        ........|.\n\
+        ..........\n\
+        .........\\\n\
+        ..../.\\\\..\n\
+        .-.-/..|..\n\
+        .|....-|.\\\n\
+        ..//.|....";
+
+    #[test]
+    fn hamsters_from_the_side_count_is_correct() {
+        let map = Map::parse(EXAMPLE);
+        let num_hamsters = hamsters_from_above(&map)
+            .chain(hamsters_from_below(&map))
+            .chain(hamsters_from_left(&map))
+            .chain(hamsters_from_right(&map))
+            .count();
+        let expected = 2 * (map.width() + map.height());
+        assert_eq!(num_hamsters, expected);
+    }
+
+    #[test]
+    fn test_example() {
+        assert_eq!(run(EXAMPLE), 51);
+    }
+}
