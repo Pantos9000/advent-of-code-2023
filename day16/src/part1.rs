@@ -1,5 +1,25 @@
-pub fn run(_input: &str) -> usize {
-    0 // TODO
+use crate::direction::Direction;
+use crate::hamster::QuantumHamster;
+use crate::map::{Coords, Map};
+
+pub fn run(input: &str) -> usize {
+    let mut map = Map::parse(input);
+    let starting_position = Coords::new(0, 0);
+    let starting_direction = Direction::Right;
+    let mut hamsters = vec![QuantumHamster::new(starting_position, starting_direction)];
+
+    while let Some(mut hamster) = hamsters.pop() {
+        if let Some(new_hamster) = hamster.reorient(&map) {
+            hamsters.push(new_hamster);
+        }
+        while let Some(mut same_hamster) = hamster.walk(&mut map) {
+            if let Some(new_hamster) = same_hamster.reorient(&map) {
+                hamsters.push(new_hamster);
+            }
+            hamster = same_hamster;
+        }
+    }
+    map.num_visited_fields()
 }
 
 #[cfg(test)]

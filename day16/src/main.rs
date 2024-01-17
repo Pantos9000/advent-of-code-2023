@@ -1,3 +1,7 @@
+mod direction;
+mod hamster;
+mod map;
+
 mod part1;
 mod part2;
 
@@ -23,6 +27,6 @@ mod tests {
     #[test]
     fn test_part1_solution() {
         let input = read_input();
-        // assert_eq!(part1::run(&input), TODO);
+        assert_eq!(part1::run(&input), 8323);
     }
 }
