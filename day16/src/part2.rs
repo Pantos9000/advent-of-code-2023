@@ -17,37 +17,37 @@ pub fn run(input: &str) -> usize {
 
 fn hamsters_from_above(map: &Map) -> impl Iterator<Item = QuantumHamster> {
     let range = 0..map.width();
-    let x = 0; // first row
+    let y = 0; // first row
     let direction = Direction::Down;
     range
-        .map(move |y| Coords::new(x, y))
+        .map(move |x| Coords::new(x, y))
         .map(move |position| QuantumHamster::new(position, direction))
 }
 
 fn hamsters_from_below(map: &Map) -> impl Iterator<Item = QuantumHamster> {
     let range = 0..map.width();
-    let x = map.height() - 1; // last row
+    let y = map.height() - 1; // last row
     let direction = Direction::Up;
     range
-        .map(move |y| Coords::new(x, y))
+        .map(move |x| Coords::new(x, y))
         .map(move |position| QuantumHamster::new(position, direction))
 }
 
 fn hamsters_from_left(map: &Map) -> impl Iterator<Item = QuantumHamster> {
     let range = 0..map.height();
-    let y = 0; // first col
+    let x = 0; // first col
     let direction = Direction::Right;
     range
-        .map(move |x| Coords::new(x, y))
+        .map(move |y| Coords::new(x, y))
         .map(move |position| QuantumHamster::new(position, direction))
 }
 
 fn hamsters_from_right(map: &Map) -> impl Iterator<Item = QuantumHamster> {
     let range = 0..map.height();
-    let y = map.width() - 1; // last col
+    let x = map.width() - 1; // last col
     let direction = Direction::Left;
     range
-        .map(move |x| Coords::new(x, y))
+        .map(move |y| Coords::new(x, y))
         .map(move |position| QuantumHamster::new(position, direction))
 }
 
@@ -82,5 +82,12 @@ mod tests {
     #[test]
     fn test_example() {
         assert_eq!(run(EXAMPLE), 51);
+    }
+
+    #[test]
+    fn test_example_right_hamster() {
+        let map = Map::parse(EXAMPLE);
+        let hamster = QuantumHamster::new(Coords::new(3, 0), Direction::Down);
+        assert_eq!(fire_hamster(map, hamster), 51);
     }
 }
