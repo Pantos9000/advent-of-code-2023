@@ -126,3 +126,94 @@ impl Operation {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn show_lenses(boxes: &[LensBox]) -> String {
+        let mut ret = String::new();
+        let mut is_first = true;
+        'boxloop: for (box_id, lens_box) in boxes.iter().enumerate() {
+            if lens_box.lenses.is_empty() {
+                continue 'boxloop;
+            }
+            if is_first {
+                is_first = false;
+            } else {
+                ret.push('\n');
+            }
+            ret.push_str(&format!("Box {box_id}:"));
+            for (label, lens) in &lens_box.lenses {
+                let focal_length = lens.focal_length;
+                ret.push_str(&format!(" [{label} {focal_length}]"));
+            }
+        }
+        ret
+    }
+
+    #[test]
+    fn test_example() {
+        let mut boxes = vec![LensBox::default(); 256];
+
+        Instruction::parse("rn=1").execute(&mut boxes);
+        let expectation = "Box 0: [rn 1]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("cm-").execute(&mut boxes);
+        let expectation = "Box 0: [rn 1]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("qp=3").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1]\n\
+            Box 1: [qp 3]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("cm=2").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1] [cm 2]\n\
+            Box 1: [qp 3]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("qp-").execute(&mut boxes);
+        let expectation = "Box 0: [rn 1] [cm 2]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("pc=4").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1] [cm 2]\n\
+            Box 3: [pc 4]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("ot=9").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1] [cm 2]\n\
+            Box 3: [pc 4] [ot 9]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("ab=5").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1] [cm 2]\n\
+            Box 3: [pc 4] [ot 9] [ab 5]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("pc-").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1] [cm 2]\n\
+            Box 3: [ot 9] [ab 5]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("pc=6").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1] [cm 2]\n\
+            Box 3: [ot 9] [ab 5] [pc 6]";
+        assert_eq!(show_lenses(&boxes), expectation);
+
+        Instruction::parse("ot=7").execute(&mut boxes);
+        let expectation = "\
+            Box 0: [rn 1] [cm 2]\n\
+            Box 3: [ot 7] [ab 5] [pc 6]";
+        assert_eq!(show_lenses(&boxes), expectation);
+    }
+}
