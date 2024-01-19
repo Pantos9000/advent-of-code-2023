@@ -1,3 +1,6 @@
+mod hamster;
+mod map;
+
 mod part1;
 mod part2;
 
