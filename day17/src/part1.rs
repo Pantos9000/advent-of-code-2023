@@ -7,6 +7,12 @@ pub fn run(input: &str) -> usize {
     const MAX_STRAIGHT_WALKS: u8 = 3;
     const MIN_STRAIGHT_WALKS: u8 = 0;
 
+    hamster_wheel::<MIN_STRAIGHT_WALKS, MAX_STRAIGHT_WALKS>(input)
+}
+
+pub fn hamster_wheel<const MIN_STRAIGHT_WALKS: u8, const MAX_STRAIGHT_WALKS: u8>(
+    input: &str,
+) -> usize {
     let mut map = Map::parse(input);
     let starting_position = Coords::new(0, 0);
 
