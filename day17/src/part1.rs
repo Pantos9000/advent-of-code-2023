@@ -62,4 +62,62 @@ mod tests {
     fn test_example() {
         assert_eq!(run(EXAMPLE), 102);
     }
+
+    #[test]
+    fn test_2x2() {
+        let input = "\
+            29\n\
+            13";
+        assert_eq!(run(input), 6);
+    }
+
+    #[test]
+    fn test_horizontal_snake() {
+        let input = "\
+            1111\n\
+            9991\n\
+            9991\n\
+            1111\n\
+            1999\n\
+            1999\n\
+            1111";
+        assert_eq!(run(input), 16);
+    }
+
+    #[test]
+    fn test_vertical_snake() {
+        let input = "\
+            19111\n\
+            19191\n\
+            19191\n\
+            11191";
+        assert_eq!(run(input), 14);
+    }
+
+    #[test]
+    fn test_max3_horizonal() {
+        let input = "\
+            1111111111111\n\
+            1111111111111";
+        assert_eq!(run(input), 16);
+    }
+
+    #[test]
+    fn test_max3_vertical() {
+        let input = "\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11\n\
+            11";
+        assert_eq!(run(input), 16);
+    }
 }
