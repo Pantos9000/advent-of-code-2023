@@ -5,11 +5,15 @@ use std::collections::BinaryHeap;
 
 pub fn run(input: &str) -> usize {
     const MAX_STRAIGHT_WALKS: u8 = 3;
+    const MIN_STRAIGHT_WALKS: u8 = 0;
 
-    let mut map = Map::<MAX_STRAIGHT_WALKS>::parse(input);
+    let mut map = Map::parse(input);
     let starting_position = Coords::new(0, 0);
 
-    let hamster = QuantumHamster::new(starting_position, Direction::Down);
+    let hamster = QuantumHamster::<MIN_STRAIGHT_WALKS, MAX_STRAIGHT_WALKS>::new(
+        starting_position,
+        Direction::Down,
+    );
 
     let mut hamsters = BinaryHeap::new();
     hamsters.push(hamster);
@@ -17,11 +21,15 @@ pub fn run(input: &str) -> usize {
     while let Some(hamster) = hamsters.pop() {
         let (alive_hamster, dead_hamster, zombie_hamster) = hamster.reorient();
 
-        if let Some(alive_hamster) = alive_hamster.walk(&mut map) {
-            hamsters.push(alive_hamster);
+        if let Some(alive_hamster) = alive_hamster {
+            if let Some(alive_hamster) = alive_hamster.walk(&mut map) {
+                hamsters.push(alive_hamster);
+            }
         }
-        if let Some(dead_hamster) = dead_hamster.walk(&mut map) {
-            hamsters.push(dead_hamster);
+        if let Some(dead_hamster) = dead_hamster {
+            if let Some(dead_hamster) = dead_hamster.walk(&mut map) {
+                hamsters.push(dead_hamster);
+            }
         }
         if let Some(zombie_hamster) = zombie_hamster {
             if let Some(zombie_hamster) = zombie_hamster.walk(&mut map) {

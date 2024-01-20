@@ -1,35 +1,37 @@
 use crate::map::{Coords, Direction, Map};
 
-pub struct QuantumHamster<const MAX_STRAIGHT_WALKS: u8> {
+pub struct QuantumHamster<const MIN_STRAIGHT_WALKS: u8, const MAX_STRAIGHT_WALKS: u8> {
     position: Coords,
     direction: Direction,
     num_straight_walks: u8,
     heat_trace: u32,
 }
 
-impl<const W: u8> PartialEq for QuantumHamster<W> {
+impl<const W: u8, const Q: u8> PartialEq for QuantumHamster<W, Q> {
     fn eq(&self, other: &Self) -> bool {
         self.heat_trace.eq(&other.heat_trace)
     }
 }
 
-impl<const W: u8> Eq for QuantumHamster<W> {}
+impl<const W: u8, const Q: u8> Eq for QuantumHamster<W, Q> {}
 
 // Hamsters with less heat loss are better, so reverse the ordering
-impl<const W: u8> std::cmp::PartialOrd for QuantumHamster<W> {
+impl<const W: u8, const Q: u8> std::cmp::PartialOrd for QuantumHamster<W, Q> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
 // Hamsters with less heat loss are better, so reverse the ordering
-impl<const W: u8> std::cmp::Ord for QuantumHamster<W> {
+impl<const W: u8, const Q: u8> std::cmp::Ord for QuantumHamster<W, Q> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         other.heat_trace.cmp(&self.heat_trace)
     }
 }
 
-impl<const MAX_STRAIGHT_WALKS: u8> QuantumHamster<MAX_STRAIGHT_WALKS> {
+impl<const MIN_STRAIGHT_WALKS: u8, const MAX_STRAIGHT_WALKS: u8>
+    QuantumHamster<MIN_STRAIGHT_WALKS, MAX_STRAIGHT_WALKS>
+{
     pub fn new(position: Coords, direction: Direction) -> Self {
         Self {
             position,
@@ -57,14 +59,20 @@ impl<const MAX_STRAIGHT_WALKS: u8> QuantumHamster<MAX_STRAIGHT_WALKS> {
         Some(self)
     }
 
-    /// Quantum Hamster will try to reorient and follow all possible ways. As it is quantum,
-    /// it will split up and go into superposition, returning two evil parallel-universe-versions
-    /// of itself.
-    ///
-    /// If it is possible to walk straight, it will even go into hyper-position (3 hamsters).
-    pub fn reorient(self) -> (Self, Self, Option<Self>) {
-        let hamster_a = self.superposition(self.direction.left());
-        let hamster_b = self.superposition(self.direction.right());
+    /// Quantum Hamster will try to reorient and try to follow all possible ways. As it is quantum,
+    /// it will split up and go into superposition, returning up to two additional evil
+    /// parallel-universe-versions of itself.
+    pub fn reorient(self) -> (Option<Self>, Option<Self>, Option<Self>) {
+        let hamster_a = if self.num_straight_walks >= MIN_STRAIGHT_WALKS {
+            Some(self.superposition(self.direction.left()))
+        } else {
+            None
+        };
+        let hamster_b = if self.num_straight_walks >= MIN_STRAIGHT_WALKS {
+            Some(self.superposition(self.direction.right()))
+        } else {
+            None
+        };
         let hamster_c = if self.num_straight_walks < MAX_STRAIGHT_WALKS {
             Some(self)
         } else {
