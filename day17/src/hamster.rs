@@ -50,16 +50,18 @@ impl QuantumHamster {
         }
     }
 
-    pub fn take_heat(&mut self, map: &Map) {
-        let field = map.get_field(self.position).unwrap();
+    fn take_heat_and_leave_trace(mut self, map: &mut Map) -> Option<Self> {
+        let field = map.get_field_mut(self.position)?;
         self.heat_trace += field.heat_loss();
+        field.new_smallest_trace(self.heat_trace).ok()?;
+        Some(self)
     }
 
     /// Quantum Hamster will try to reorient and follow all possible ways. As it is quantum,
     /// it will split up and go into superposition, returning two evil parallel-universe-versions
     /// of itself.
     ///
-    /// If it is possible to walk straight, it will even go into hyper-position.
+    /// If it is possible to walk straight, it will even go into hyper-position (3 hamsters).
     pub fn reorient(self) -> (Self, Self, Option<Self>) {
         let hamster_a = self.superposition(self.direction.left());
         let hamster_b = self.superposition(self.direction.right());
@@ -82,14 +84,11 @@ impl QuantumHamster {
     /// Furthermore, this prevents the evil hamsters from clinging together, forming a fascist
     /// government and conquering all the RAM.
     pub fn walk(mut self, map: &mut Map) -> Option<Self> {
-        let next_position = self.position.move_into_direction(self.direction)?;
-        let next_field = map.get_field_mut(next_position)?;
+        self = self.take_heat_and_leave_trace(map)?;
 
+        let next_position = self.position.move_into_direction(self.direction)?;
         self.position = next_position;
         self.num_straight_walks += 1;
-        self.heat_trace += next_field.heat_loss();
-        next_field.new_smallest_trace(self.heat_trace).ok()?;
-
         Some(self)
     }
 }

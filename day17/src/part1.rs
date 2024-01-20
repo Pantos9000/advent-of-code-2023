@@ -7,8 +7,7 @@ pub fn run(input: &str) -> usize {
     let mut map = Map::parse(input);
     let starting_position = Coords::new(0, 0);
 
-    let mut hamster = QuantumHamster::new(starting_position, Direction::Down);
-    hamster.take_heat(&map);
+    let hamster = QuantumHamster::new(starting_position, Direction::Down);
 
     let mut hamsters = BinaryHeap::new();
     hamsters.push(hamster);
