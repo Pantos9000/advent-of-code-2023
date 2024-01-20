@@ -53,7 +53,9 @@ impl QuantumHamster {
     fn take_heat_and_leave_trace(mut self, map: &mut Map) -> Option<Self> {
         let field = map.get_field_mut(self.position)?;
         self.heat_trace += field.heat_loss();
-        field.new_smallest_trace(self.heat_trace).ok()?;
+        field
+            .leave_trace(self.direction, self.num_straight_walks, self.heat_trace)
+            .ok()?;
         Some(self)
     }
 

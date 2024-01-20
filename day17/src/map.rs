@@ -29,14 +29,14 @@ impl Map {
 
 pub struct Field {
     heat_loss: u32,
-    smallest_trace: Option<u32>,
+    trace_cache: TraceCache,
 }
 
 impl Field {
     fn parse(c: char) -> Self {
         Self {
             heat_loss: c.to_digit(10).expect("unknown char '{c}'"),
-            smallest_trace: None,
+            trace_cache: TraceCache::default(),
         }
     }
 
@@ -45,18 +45,64 @@ impl Field {
     }
 
     pub fn smallest_trace(&self) -> Option<u32> {
-        self.smallest_trace
+        self.trace_cache.smallest_trace()
     }
 
     /// set a new smallest hamster trace. Returns an error if the new trace is not smaller.
-    pub fn new_smallest_trace(&mut self, new_trace: u32) -> Result<(), ()> {
-        if let Some(old_trace) = self.smallest_trace {
-            if new_trace > old_trace {
+    pub fn leave_trace(
+        &mut self,
+        direction: Direction,
+        num_straight_walks: u8,
+        new_trace: u32,
+    ) -> Result<(), ()> {
+        self.trace_cache
+            .leave_trace(direction, num_straight_walks, new_trace)
+    }
+}
+
+#[derive(Default)]
+struct TraceCache {
+    traces: Box<[Option<u32>; Self::TRACE_CACHE_SIZE]>,
+}
+
+impl TraceCache {
+    const POSSIBLE_DIRECTIONS: usize = 4;
+    const POSSIBLE_STRAIGHT_WALKS: usize = 4;
+    const TRACE_CACHE_SIZE: usize = Self::POSSIBLE_DIRECTIONS * Self::POSSIBLE_STRAIGHT_WALKS;
+
+    fn calc_trace_index(direction: Direction, num_straight_walks: u8) -> usize {
+        let directions_id = match direction {
+            Direction::Up => 0,
+            Direction::Down => 1,
+            Direction::Left => 2,
+            Direction::Right => 3,
+        };
+        let walks_id = usize::from(num_straight_walks);
+        directions_id * Self::POSSIBLE_STRAIGHT_WALKS + walks_id
+    }
+
+    pub fn leave_trace(
+        &mut self,
+        direction: Direction,
+        num_straight_walks: u8,
+        new_trace: u32,
+    ) -> Result<(), ()> {
+        let index = Self::calc_trace_index(direction, num_straight_walks);
+        let maybe_old_trace = self.traces.get_mut(index).unwrap();
+        if let Some(old_trace) = maybe_old_trace {
+            if new_trace >= *old_trace {
                 return Err(());
             }
         }
-        self.smallest_trace = Some(new_trace);
+        *maybe_old_trace = Some(new_trace);
         Ok(())
+    }
+
+    pub fn smallest_trace(&self) -> Option<u32> {
+        self.traces
+            .iter()
+            .filter_map(|trace| trace.as_ref().copied())
+            .min()
     }
 }
 
