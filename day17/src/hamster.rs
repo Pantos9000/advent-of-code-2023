@@ -86,11 +86,11 @@ impl QuantumHamster {
     /// Furthermore, this prevents the evil hamsters from clinging together, forming a fascist
     /// government and conquering all the RAM.
     pub fn walk(mut self, map: &mut Map) -> Option<Self> {
-        self = self.take_heat_and_leave_trace(map)?;
-
         let next_position = self.position.move_into_direction(self.direction)?;
         self.position = next_position;
         self.num_straight_walks += 1;
+
+        self = self.take_heat_and_leave_trace(map)?;
         Some(self)
     }
 }

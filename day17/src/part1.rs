@@ -67,7 +67,7 @@ mod tests {
         let input = "\
             29\n\
             13";
-        assert_eq!(run(input), 6);
+        assert_eq!(run(input), 4);
     }
 
     #[test]
@@ -80,7 +80,7 @@ mod tests {
             1999\n\
             1999\n\
             1111";
-        assert_eq!(run(input), 16);
+        assert_eq!(run(input), 15);
     }
 
     #[test]
@@ -90,7 +90,7 @@ mod tests {
             19191\n\
             19191\n\
             11191";
-        assert_eq!(run(input), 14);
+        assert_eq!(run(input), 13);
     }
 
     #[test]
@@ -98,7 +98,7 @@ mod tests {
         let input = "\
             1111111111111\n\
             1111111111111";
-        assert_eq!(run(input), 16);
+        assert_eq!(run(input), 15);
     }
 
     #[test]
@@ -117,6 +117,6 @@ mod tests {
             11\n\
             11\n\
             11";
-        assert_eq!(run(input), 16);
+        assert_eq!(run(input), 15);
     }
 }
