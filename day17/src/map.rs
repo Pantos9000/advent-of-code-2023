@@ -1,7 +1,7 @@
-pub struct Map {
-    fields: Vec<Vec<Field>>,
+pub struct Map<const MAX_STRAIGHT_WALKS: u8> {
+    fields: Vec<Vec<Field<MAX_STRAIGHT_WALKS>>>,
 }
-impl Map {
+impl<const MAX_STRAIGHT_WALKS: u8> Map<MAX_STRAIGHT_WALKS> {
     pub fn parse(s: &str) -> Self {
         let fields = s
             .lines()
@@ -10,11 +10,11 @@ impl Map {
         Self { fields }
     }
 
-    pub fn get_field(&self, coords: Coords) -> Option<&Field> {
+    pub fn get_field(&self, coords: Coords) -> Option<&Field<MAX_STRAIGHT_WALKS>> {
         self.fields.get(coords.y)?.get(coords.x)
     }
 
-    pub fn get_field_mut(&mut self, coords: Coords) -> Option<&mut Field> {
+    pub fn get_field_mut(&mut self, coords: Coords) -> Option<&mut Field<MAX_STRAIGHT_WALKS>> {
         self.fields.get_mut(coords.y)?.get_mut(coords.x)
     }
 
@@ -27,12 +27,12 @@ impl Map {
     }
 }
 
-pub struct Field {
+pub struct Field<const MAX_STRAIGHT_WALKS: u8> {
     heat_loss: u32,
-    trace_cache: TraceCache,
+    trace_cache: TraceCache<MAX_STRAIGHT_WALKS>,
 }
 
-impl Field {
+impl<const MAX_STRAIGHT_WALKS: u8> Field<MAX_STRAIGHT_WALKS> {
     fn parse(c: char) -> Self {
         Self {
             heat_loss: c.to_digit(10).expect("unknown char '{c}'"),
@@ -60,15 +60,21 @@ impl Field {
     }
 }
 
-#[derive(Default)]
-struct TraceCache {
-    traces: Box<[Option<u32>; Self::TRACE_CACHE_SIZE]>,
+struct TraceCache<const MAX_STRAIGHT_WALKS: u8> {
+    traces: Vec<Option<u32>>,
 }
 
-impl TraceCache {
-    const POSSIBLE_DIRECTIONS: usize = 4;
-    const POSSIBLE_STRAIGHT_WALKS: usize = 4;
-    const TRACE_CACHE_SIZE: usize = Self::POSSIBLE_DIRECTIONS * Self::POSSIBLE_STRAIGHT_WALKS;
+impl<const MAX_STRAIGHT_WALKS: u8> Default for TraceCache<MAX_STRAIGHT_WALKS> {
+    fn default() -> Self {
+        let size = usize::from(Self::TRACE_CACHE_SIZE);
+        let traces = vec![None; size];
+        Self { traces }
+    }
+}
+
+impl<const MAX_STRAIGHT_WALKS: u8> TraceCache<MAX_STRAIGHT_WALKS> {
+    const POSSIBLE_DIRECTIONS: u8 = 4;
+    const TRACE_CACHE_SIZE: u8 = Self::POSSIBLE_DIRECTIONS * (MAX_STRAIGHT_WALKS + 1);
 
     fn calc_trace_index(direction: Direction, num_straight_walks: u8) -> usize {
         let directions_id = match direction {
@@ -77,8 +83,9 @@ impl TraceCache {
             Direction::Left => 2,
             Direction::Right => 3,
         };
+        let max_straight_walks = usize::from(MAX_STRAIGHT_WALKS);
         let walks_id = usize::from(num_straight_walks);
-        directions_id * Self::POSSIBLE_STRAIGHT_WALKS + walks_id
+        directions_id * max_straight_walks + walks_id
     }
 
     pub fn leave_trace(

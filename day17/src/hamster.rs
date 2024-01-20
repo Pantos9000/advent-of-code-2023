@@ -1,37 +1,35 @@
 use crate::map::{Coords, Direction, Map};
 
-pub struct QuantumHamster {
+pub struct QuantumHamster<const MAX_STRAIGHT_WALKS: u8> {
     position: Coords,
     direction: Direction,
     num_straight_walks: u8,
     heat_trace: u32,
 }
 
-impl PartialEq for QuantumHamster {
+impl<const W: u8> PartialEq for QuantumHamster<W> {
     fn eq(&self, other: &Self) -> bool {
         self.heat_trace.eq(&other.heat_trace)
     }
 }
 
-impl Eq for QuantumHamster {}
+impl<const W: u8> Eq for QuantumHamster<W> {}
 
 // Hamsters with less heat loss are better, so reverse the ordering
-impl std::cmp::PartialOrd for QuantumHamster {
+impl<const W: u8> std::cmp::PartialOrd for QuantumHamster<W> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
 // Hamsters with less heat loss are better, so reverse the ordering
-impl std::cmp::Ord for QuantumHamster {
+impl<const W: u8> std::cmp::Ord for QuantumHamster<W> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         other.heat_trace.cmp(&self.heat_trace)
     }
 }
 
-impl QuantumHamster {
-    const MAX_STRAIGHT_WALKS: u8 = 3;
-
+impl<const MAX_STRAIGHT_WALKS: u8> QuantumHamster<MAX_STRAIGHT_WALKS> {
     pub fn new(position: Coords, direction: Direction) -> Self {
         Self {
             position,
@@ -50,7 +48,7 @@ impl QuantumHamster {
         }
     }
 
-    fn take_heat_and_leave_trace(mut self, map: &mut Map) -> Option<Self> {
+    fn take_heat_and_leave_trace(mut self, map: &mut Map<MAX_STRAIGHT_WALKS>) -> Option<Self> {
         let field = map.get_field_mut(self.position)?;
         self.heat_trace += field.heat_loss();
         field
@@ -67,7 +65,7 @@ impl QuantumHamster {
     pub fn reorient(self) -> (Self, Self, Option<Self>) {
         let hamster_a = self.superposition(self.direction.left());
         let hamster_b = self.superposition(self.direction.right());
-        let hamster_c = if self.num_straight_walks < Self::MAX_STRAIGHT_WALKS {
+        let hamster_c = if self.num_straight_walks < MAX_STRAIGHT_WALKS {
             Some(self)
         } else {
             None
@@ -85,7 +83,7 @@ impl QuantumHamster {
     ///
     /// Furthermore, this prevents the evil hamsters from clinging together, forming a fascist
     /// government and conquering all the RAM.
-    pub fn walk(mut self, map: &mut Map) -> Option<Self> {
+    pub fn walk(mut self, map: &mut Map<MAX_STRAIGHT_WALKS>) -> Option<Self> {
         let next_position = self.position.move_into_direction(self.direction)?;
         self.position = next_position;
         self.num_straight_walks += 1;

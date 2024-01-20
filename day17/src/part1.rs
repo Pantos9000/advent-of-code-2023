@@ -4,7 +4,9 @@ use crate::map::{Coords, Direction, Map};
 use std::collections::BinaryHeap;
 
 pub fn run(input: &str) -> usize {
-    let mut map = Map::parse(input);
+    const MAX_STRAIGHT_WALKS: u8 = 3;
+
+    let mut map = Map::<MAX_STRAIGHT_WALKS>::parse(input);
     let starting_position = Coords::new(0, 0);
 
     let hamster = QuantumHamster::new(starting_position, Direction::Down);
