@@ -51,7 +51,7 @@ impl Field {
     /// set a new smallest hamster trace. Returns an error if the new trace is not smaller.
     pub fn new_smallest_trace(&mut self, new_trace: u32) -> Result<(), ()> {
         if let Some(old_trace) = self.smallest_trace {
-            if new_trace >= old_trace {
+            if new_trace > old_trace {
                 return Err(());
             }
         }
