@@ -63,23 +63,23 @@ impl<const MIN_STRAIGHT_WALKS: u8, const MAX_STRAIGHT_WALKS: u8>
     /// it will split up and go into superposition, returning up to two additional evil
     /// parallel-universe-versions of itself.
     pub fn reorient(self) -> (Option<Self>, Option<Self>, Option<Self>) {
-        let hamster_a = if self.num_straight_walks >= MIN_STRAIGHT_WALKS {
+        let hamster_left = if self.num_straight_walks < MIN_STRAIGHT_WALKS {
+            None
+        } else {
             Some(self.superposition(self.direction.left()))
-        } else {
-            None
         };
-        let hamster_b = if self.num_straight_walks >= MIN_STRAIGHT_WALKS {
+        let hamster_right = if self.num_straight_walks < MIN_STRAIGHT_WALKS {
+            None
+        } else {
             Some(self.superposition(self.direction.right()))
-        } else {
-            None
         };
-        let hamster_c = if self.num_straight_walks < MAX_STRAIGHT_WALKS {
+        let hamster_straight = if self.num_straight_walks < MAX_STRAIGHT_WALKS {
             Some(self)
         } else {
             None
         };
 
-        (hamster_a, hamster_b, hamster_c)
+        (hamster_left, hamster_right, hamster_straight)
     }
 
     /// Quantum hamster will try to walk into the direction it is facing, but its wave function
