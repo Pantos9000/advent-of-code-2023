@@ -16,13 +16,19 @@ pub fn hamster_wheel<const MIN_STRAIGHT_WALKS: u8, const MAX_STRAIGHT_WALKS: u8>
     let mut map = Map::parse(input);
     let starting_position = Coords::new(0, 0);
 
-    let hamster = QuantumHamster::<MIN_STRAIGHT_WALKS, MAX_STRAIGHT_WALKS>::new(
+    let hamster_down = QuantumHamster::<MIN_STRAIGHT_WALKS, MAX_STRAIGHT_WALKS>::new(
         starting_position,
         Direction::Down,
     );
 
+    let hamster_right = QuantumHamster::<MIN_STRAIGHT_WALKS, MAX_STRAIGHT_WALKS>::new(
+        starting_position,
+        Direction::Right,
+    );
+
     let mut hamsters = BinaryHeap::new();
-    hamsters.push(hamster);
+    hamsters.push(hamster_down);
+    hamsters.push(hamster_right);
 
     while let Some(hamster) = hamsters.pop() {
         let (alive_hamster, dead_hamster, zombie_hamster) = hamster.reorient();
